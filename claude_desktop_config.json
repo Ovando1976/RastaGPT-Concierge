@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rastagpt-concierge": {
+      "command": "python",
+      "args": ["src/server.py"],
+      "env": {}
+    }
+  }
+}

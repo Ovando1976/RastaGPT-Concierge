@@ -1,0 +1,16 @@
+{
+  "name": "rastagpt-concierge",
+  "version": "1.0.0",
+  "description": "USVI food, beaches, and events—right inside ChatGPT",
+  "type": "module",
+  "main": "src/server.py",
+  "bin": {
+    "rastagpt-concierge": "./src/server.py"
+  },
+  "scripts": {
+    "start": "python src/server.py"
+  },
+  "keywords": ["mcp", "chatgpt", "usvi", "caribbean", "concierge"],
+  "author": "RastaGPT Team",
+  "license": "MIT"
+}

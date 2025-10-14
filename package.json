@@ -1,5 +1,9 @@
 {
+  
   "name": "rastagpt-concierge",
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "workspaces": ["apps/*"],
   "version": "1.0.0",
   "description": "USVI food, beaches, and events—right inside ChatGPT",
   "type": "module",
@@ -10,7 +14,17 @@
   "scripts": {
     "start": "python src/server.py"
   },
-  "keywords": ["mcp", "chatgpt", "usvi", "caribbean", "concierge"],
+  "keywords": [
+    "mcp",
+    "chatgpt",
+    "usvi",
+    "caribbean",
+    "concierge"
+  ],
   "author": "RastaGPT Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@types/react": "^19.2.2",
+    "react": "^19.2.0"
+  }
 }

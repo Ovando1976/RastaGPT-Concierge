@@ -1,0 +1,13 @@
+# dependencies / outputs
+node_modules
+dist
+
+# repo junk
+.git
+.gitignore
+Dockerfile
+*.log
+
+# env files (inject via platform)
+.env
+.env.*

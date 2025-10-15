@@ -1,1 +1,0 @@
-self.__REACT_LOADABLE_MANIFEST="{\"app/components/ShowcaseClient.tsx -> ../sections/Showcase\":{\"id\":\"app/components/ShowcaseClient.tsx -> ../sections/Showcase\",\"files\":[\"static/chunks/_app-pages-browser_app_sections_Showcase_tsx.js\"]}}"

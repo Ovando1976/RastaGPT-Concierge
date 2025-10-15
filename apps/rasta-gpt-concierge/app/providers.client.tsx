@@ -1,5 +1,4 @@
 "use client";
-import { getFirebaseApp } from "./lib/firebase.client";
 import AuthProvider from "./components/AuthProvider";
 // import ToastProvider from "./ToastProvider" // etc.
 

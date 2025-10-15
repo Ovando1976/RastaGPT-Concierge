@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
-import { useRecipes, type RecipeFilters } from "../hooks/useRecipes";
+import { useRecipes } from "../hooks/useRecipes";
+import type { RecipeFilters } from "../hooks/useRecipes";
 import RecipeCard from "./RecipeCard";
 import Carousel from "./Carousel";
 
@@ -13,21 +14,24 @@ export default function RecipeSearch() {
   const [category, setCategory] = useState("");
   const [tag, setTag] = useState("");
 
-  const filters: RecipeFilters = useMemo(() => ({
-    cuisine: cuisine || undefined,
-    category: category || undefined,
-    tags: tag ? [tag] : undefined
-  }), [cuisine, category, tag]);
+  // ✅ Build filters by omitting empty fields
+  const filters = useMemo<RecipeFilters>(() => {
+    const f: RecipeFilters = {};
+    if (cuisine) f.cuisine = cuisine;
+    if (category) f.category = category;
+    if (tag) f.tags = [tag];
+    return f;
+  }, [cuisine, category, tag]);
 
   const { items, loading, error } = useRecipes(60, filters);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     if (!needle) return items;
-    return items.filter(r => {
-      if (r.name.toLowerCase().includes(needle)) return true;
-      return r.ingredients.some(i => i.toLowerCase().includes(needle));
-    });
+    return items.filter(r =>
+      r.name.toLowerCase().includes(needle) ||
+      r.ingredients.some(i => i.toLowerCase().includes(needle))
+    );
   }, [items, q]);
 
   return (

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import {ClientPage} from "./client-page"; // <-- add this import
+import ClientPage from "./client-page"; // <-- add this import
 
 
 export default function Page() {

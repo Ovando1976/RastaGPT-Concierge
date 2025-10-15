@@ -1,8 +1,6 @@
-// SERVER file – do not add "use client"
-import NextDynamic from "next/dynamic";
+import type { Metadata } from "next";
+import {ClientPage} from "./client-page"; // <-- add this import
 
-// Keep this only if you still need to bypass static prerender
-export const dynamic = "force-dynamic";
 
 export default function Page() {
   return <ClientPage />;

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { getAllRates, getRateByPair, createRideRequest } from "../lib/firestore";
-import { useUser } from "./AuthProvider"; // from earlier auth step (optional)
+import { useUser } from "./auth-context";
 
 type Option = { value: string; label: string };
 
@@ -13,7 +13,8 @@ export default function RateQuote() {
   const [optsFrom, setOptsFrom] = useState<Option[]>([]);
   const [optsTo, setOptsTo] = useState<Option[]>([]);
   const [note, setNote] = useState<string | null>(null);
-  const { user } = useUser?.() ?? { user: null };
+  const userObj = useUser();
+  const user = userObj && userObj.user && typeof userObj.user.uid === "string" ? userObj.user : null;
 
   useEffect(() => {
     // hydrate dropdowns with unique from/to values

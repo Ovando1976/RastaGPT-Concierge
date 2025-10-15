@@ -18,7 +18,7 @@ export default function EventCard({ e }: { e: EventItem }) {
     `${e.location}, ${e.island}`
   )}`;
 
-  async function callDriver() {
+  async function callDriver(): Promise<void> {
     setNote("Requesting ride…");
     try {
       const res = await fetch("/api/request-ride", {
@@ -26,14 +26,23 @@ export default function EventCard({ e }: { e: EventItem }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ to: e.title, pax: 2, island: e.island, when: "ASAP" }),
       });
-      const json = await res.json();
-      if (json?.ok) {
-        const txt = `Driver ${json.confirmation} • $${json.fare_estimate_usd}`;
+
+      type RideResponse = {
+        ok?: boolean;
+        confirmation?: string;
+        fare_estimate_usd?: number;
+        error?: string;
+      };
+
+      const data = (await res.json()) as RideResponse;
+
+      if (data?.ok) {
+        const txt = `Driver ${data.confirmation} • $${data.fare_estimate_usd}`;
         setNote(`✔ ${txt}`);
         push("ok", txt);
       } else {
-        setNote(`✖ ${json?.error || "unknown_error"}`);
-        push("err", `Failed: ${json?.error || "unknown_error"}`);
+        setNote(`✖ ${data?.error || "unknown_error"}`);
+        push("err", `Failed: ${data?.error || "unknown_error"}`);
       }
     } catch (err: any) {
       setNote(`✖ ${err.message || "network_error"}`);

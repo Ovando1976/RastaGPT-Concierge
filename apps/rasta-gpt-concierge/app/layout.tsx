@@ -1,6 +1,6 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
-import AuthProvider from "./components/AuthProvider";
+import ClientProviders from "./components/ClientProviders";
 
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
@@ -13,7 +13,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body><AuthProvider>{children}</AuthProvider></body>
+      <body><ClientProvider>{children}</ClientProvider></body>
     </html>
   );
 }

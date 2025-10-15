@@ -1,4 +1,6 @@
 "use client";
+
+import AppProvider from "./providers.client";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import McpStatus from "./components/McpStatus";
@@ -6,11 +8,10 @@ import RateQuote from "./components/RateQuote";
 import SectionTitle from "./components/SectionTitle";
 import Hero from "./components/Hero";
 import RecipeSearch from "./components/RecipeSearch";
-import ShowcaseClient from "./components/ShowcaseClient"; // ← add this
 
 export default function ClientPage() {
   return (
-    <>
+    <AppProvider>
       <Navbar />
       <div className="container">
         <Hero />
@@ -29,11 +30,8 @@ export default function ClientPage() {
         <SectionTitle icon="🍽️" title="Recipes & Catering" />
         <RecipeSearch />
 
-        {/* Featured carousels (recipes/beaches/events demo) */}
-        <ShowcaseClient/>
-
         <Footer />
       </div>
-    </>
+    </AppProvider>
   );
 }

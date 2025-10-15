@@ -1,15 +1,19 @@
-// app/layout.tsx (Server Component by default)
-import  AppProvider  from "./providers.client"; // Importing the client component is OK
+import "./globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"], display: "swap" });
+
+export const metadata: Metadata = {
+  title: "RastaGPT Concierge",
+  description: "USVI food, beaches, and events—right inside ChatGPT/Claude.",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // DO NOT call getFirebaseApp() here!
-  
   return (
-    <html>
-      <body>
-        <AppProvider> // Rendering the client component is OK
-          {children}
-        </AppProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        {children} {/* ❌ no AppProvider/ClientProviders here */}
       </body>
     </html>
   );

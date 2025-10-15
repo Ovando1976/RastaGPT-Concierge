@@ -1,14 +1,10 @@
-// apps/rasta-gpt-concierge/app/page.tsx  (SERVER)
-import dynamic from "next/dynamic";
+// SERVER file – do not add "use client"
+import NextDynamic from "next/dynamic";
 
-// Do NOT import firebase here.
-// If you previously did, remove it.
+// Keep this only if you still need to bypass static prerender
+export const dynamic = "force-dynamic";
 
-// If you still get prerender hiccups while migrating, you can keep this:
-export const dynamic = "force-dynamic"; // optional safety; remove later
-
-// Load the client shell only in the browser
-const ClientPage = dynamic(() => import("./client-page"), { ssr: false });
+const ClientPage = NextDynamic(() => import("./client-page"), { ssr: false });
 
 export default function Page() {
   return <ClientPage />;

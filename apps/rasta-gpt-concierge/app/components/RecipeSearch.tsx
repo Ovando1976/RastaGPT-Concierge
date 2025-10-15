@@ -1,57 +1,72 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useRecipes, type RecipeFilters } from "../hooks/useRecipes";
 import RecipeCard from "./RecipeCard";
+import Carousel from "./Carousel";
+
+const CUISINES = ["USVI","Jamaican","Trinidadian","Puerto Rican","Dominican","Cuban","Bahamian","Barbadian","Belizean","Curaçaoan"];
+const CATEGORIES = ["bread","stew","seafood","rice","soup","snack","main","dessert"];
 
 export default function RecipeSearch() {
   const [q, setQ] = useState("");
-  const [items, setItems] = useState<any[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [cuisine, setCuisine] = useState("");
+  const [category, setCategory] = useState("");
+  const [tag, setTag] = useState("");
 
-  async function run(search: string) {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/recipes?q=${encodeURIComponent(search)}`, { cache: "no-store" });
-      const json = await res.json();
-      setItems(json.items || []);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const filters: RecipeFilters = useMemo(() => ({
+    cuisine: cuisine || undefined,
+    category: category || undefined,
+    tags: tag ? [tag] : undefined
+  }), [cuisine, category, tag]);
 
-  // initial load
-  useEffect(() => { run(""); }, []);
+  const { items, loading, error } = useRecipes(60, filters);
 
-  const list = useMemo(() => items || [], [items]);
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return items;
+    return items.filter(r => {
+      if (r.name.toLowerCase().includes(needle)) return true;
+      return r.ingredients.some(i => i.toLowerCase().includes(needle));
+    });
+  }, [items, q]);
 
   return (
-    <section style={{ marginTop: 24 }}>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+    <section style={{marginTop:14}}>
+      <div className="row" style={{marginBottom:10}}>
         <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
+          className="input"
           placeholder="Search recipes (e.g., conch, soup, okra)…"
-          onKeyDown={(e) => e.key === "Enter" && run(q)}
-          style={{
-            flex: 1, padding: "10px 12px", borderRadius: 10,
-            border: "1px solid #e5e7eb", fontSize: 14
-          }}
+          value={q}
+          onChange={e => setQ(e.target.value)}
+          style={{flex:1}}
         />
-        <button onClick={() => run(q)} style={{
-          padding: "10px 14px", borderRadius: 10,
-          border: "1px solid #d1d5db", background: "#fff", cursor: "pointer"
-        }}>
-          Search
-        </button>
-        {loading && <span style={{ fontSize: 12, color: "#6b7280" }}>Loading…</span>}
+        <button className="btn btn-outline" onClick={() => setQ("")}>Clear</button>
       </div>
 
-      {list.length > 0 && (
-        <div style={{ display: "flex", gap: 16, overflowX: "auto", marginTop: 12 }}>
-          {list.map((r: any) => <RecipeCard key={r.id || r.name} r={r} />)}
-        </div>
-      )}
-      {items && !list.length && (
-        <p style={{ color: "#6b7280", marginTop: 12 }}>No results.</p>
+      <div className="row">
+        <select className="select" value={cuisine} onChange={e => setCuisine(e.target.value)}>
+          <option value="">All cuisines</option>
+          {CUISINES.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select className="select" value={category} onChange={e => setCategory(e.target.value)}>
+          <option value="">All categories</option>
+          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <input
+          className="input"
+          placeholder="Tag (fried, coconut, street)"
+          value={tag}
+          onChange={e => setTag(e.target.value.trim())}
+        />
+      </div>
+
+      {error && <div style={{color:"#ef4444", marginTop:8}}>Failed to load recipes: {error}</div>}
+      {loading ? (
+        <div style={{marginTop:10}}>Loading recipes…</div>
+      ) : (
+        <Carousel title="🍽️ Recipes">
+          {filtered.map(r => <RecipeCard key={r.id} r={r} />)}
+        </Carousel>
       )}
     </section>
   );

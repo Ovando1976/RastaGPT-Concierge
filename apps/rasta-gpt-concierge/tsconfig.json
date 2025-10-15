@@ -15,8 +15,10 @@
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
     "exactOptionalPropertyTypes": true,
-    "allowJs": false,
-    // Nice-to-haves equivalent to Next’s core-web-vitals preset
+    "types": [
+      "node"
+    ],
+    "allowJs": true,
     "incremental": true,
     "module": "esnext",
     "esModuleInterop": true,

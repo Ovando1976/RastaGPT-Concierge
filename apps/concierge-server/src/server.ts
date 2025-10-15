@@ -1,10 +1,22 @@
 import "dotenv/config";
 import express, { Request, Response } from "express";
+import type { RequestHandler } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
+
+/* ────────────── Lazy Admin (firebase-admin) ────────────── */
+let adminDb: import("firebase-admin").firestore.Firestore | null = null;
+
+async function ensureAdmin() {
+  if (adminDb) return adminDb;
+  const admin = await import("firebase-admin");
+  if (!admin.apps.length) admin.initializeApp();
+  adminDb = admin.firestore();
+  return adminDb;
+}
 
 /* ────────────── Sample data ────────────── */
 type Recipe = {
@@ -61,7 +73,7 @@ const EVENTS: EventItem[] = [
     actions:["Get Directions","Call Driver","Book Tickets"] },
 ];
 
-/* ────────────── Tool handlers ────────────── */
+/* ────────────── Tools ────────────── */
 function tool_health() {
   return { ok: true, name: "rasta-gpt-concierge-node",
     tools: ["find_recipe","book_catering","get_beach_conditions","find_events","request_ride"] };
@@ -115,9 +127,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(morgan("dev"));
-app.use(rateLimit({ windowMs: 60_000, max: 60 }));
+app.use(rateLimit({ windowMs: 60_000, max: 60 }) as unknown as RequestHandler);
 
-/* ────────────── Sentry (SDK v10-safe, no Express middleware) ────────────── */
+/* ────────────── Sentry (v10-safe, no Express middleware) ────────────── */
 let sentryEnabled = false;
 if (process.env.SENTRY_DSN) {
   try {
@@ -126,14 +138,11 @@ if (process.env.SENTRY_DSN) {
       environment: process.env.SENTRY_ENVIRONMENT ?? "production",
       tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? 0.2),
       profilesSampleRate: Number(process.env.SENTRY_PROFILES_SAMPLE_RATE ?? 0.1),
-      integrations: [
-        nodeProfilingIntegration(),
-        Sentry.httpIntegration(), // traces outbound http calls
-      ],
+      integrations: [nodeProfilingIntegration(), Sentry.httpIntegration()],
     });
     sentryEnabled = true;
   } catch {
-    sentryEnabled = false; // run without Sentry if init fails
+    sentryEnabled = false;
   }
 }
 
@@ -165,7 +174,7 @@ function invokeHandler(req: Request, res: Response) {
     }
   } catch (e:any) {
     if (sentryEnabled) Sentry.captureException(e);
-    return res.status(500).json({ ok:false, error:"server_error", detail:e?.message });
+    return res.status(500).json({ ok:false, error:"server_error", detail: e?.message });
   }
 }
 
@@ -174,12 +183,35 @@ app.post("/tools/invoke", invokeHandler);
 app.post("/sse/tools/invoke", invokeHandler);
 app.post("/sse/invoke", invokeHandler);
 
-/* ────────────── Fallback error handler ────────────── */
+/* ────────────── Admin route (optional, guarded) ────────────── */
+if (process.env.ENABLE_ADMIN_ROUTES === "1") {
+  app.post("/rides/create", async (req: Request, res: Response) => {
+    try {
+      const db = await ensureAdmin();
+      const { uid, from, to, pax, island, estimateUSD } = req.body || {};
+      if (!uid) return res.status(400).json({ ok: false, error: "missing_uid" });
+
+      const doc = await db.collection("rideRequests").add({
+        uid, from, to, pax, island, estimateUSD,
+        status: "requested",
+        createdAt: new Date()
+      });
+
+      res.json({ ok: true, id: doc.id });
+    } catch (e: any) {
+      if (sentryEnabled) Sentry.captureException?.(e);
+      res.status(500).json({ ok: false, error: "server_error", detail: e?.message });
+    }
+  });
+}
+
+/* ────────────── Error handler ────────────── */
 app.use((err: any, _req: Request, res: Response, _next: any) => {
   if (sentryEnabled && err) Sentry.captureException(err);
   res.status(500).json({ ok: false, error: "server_error" });
 });
 
+/* ────────────── Listen ────────────── */
 const PORT = Number(process.env.PORT || 3333);
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`[Concierge] listening on http://0.0.0.0:${PORT} (POST /invoke)`);

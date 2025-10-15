@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="675" viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1020"/>
+      <stop offset="100%" stop-color="#0e1427"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#g)"/>
+  <text x="600" y="340" text-anchor="middle" font-family="Inter, system-ui, -apple-system" font-size="64" fill="#e5f2ff">
+    Fry Jacks
+  </text>
+  <text x="600" y="410" text-anchor="middle" font-family="Inter, system-ui, -apple-system" font-size="28" fill="#9bbcdf">
+    Placeholder image
+  </text>
+</svg>

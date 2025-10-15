@@ -1,7 +1,8 @@
 "use client";
-
-import type { EventItem } from "../types";
+import NextImage from "next/image";
 import { useState } from "react";
+import { Card, Button } from "./ui";
+import type { EventItem } from "../types";
 import { useToasts } from "./Toast";
 
 function formatISODate(iso: string) {
@@ -11,6 +12,8 @@ function formatISODate(iso: string) {
 
 export default function EventCard({ e }: { e: EventItem }) {
   const [note, setNote] = useState<string | null>(null);
+  const { push } = useToasts();
+
   const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${e.location}, ${e.island}`
   )}`;
@@ -24,56 +27,55 @@ export default function EventCard({ e }: { e: EventItem }) {
         body: JSON.stringify({ to: e.title, pax: 2, island: e.island, when: "ASAP" }),
       });
       const json = await res.json();
-      setNote(json.ok ? `✔ ${json.confirmation} • $${json.fare_estimate_usd}` : `✖ ${json.error}`);
+      if (json?.ok) {
+        const txt = `Driver ${json.confirmation} • $${json.fare_estimate_usd}`;
+        setNote(`✔ ${txt}`);
+        push("ok", txt);
+      } else {
+        setNote(`✖ ${json?.error || "unknown_error"}`);
+        push("err", `Failed: ${json?.error || "unknown_error"}`);
+      }
     } catch (err: any) {
       setNote(`✖ ${err.message || "network_error"}`);
+      push("err", `Failed: ${err.message || "network_error"}`);
     }
   }
 
   return (
-    <article style={card}>
-      <header style={{ marginBottom: 8 }}>
-        <h4 style={{ margin: 0 }}>{e.title}</h4>
-        <small style={{ color: "#6b7280" }}>{e.type} • {e.island}</small>
+    <Card>
+      {e.imageUrl && (
+        <div className="thumb">
+          <NextImage
+            src={e.imageUrl}
+            alt={e.title}
+            fill
+            sizes="(max-width: 768px) 92vw, 340px"
+            style={{ objectFit: "cover" }}
+            priority={false}
+          />
+        </div>
+      )}
+
+      <header>
+        <h4>{e.title}</h4>
+        <small>
+          {e.type} • {e.island}
+        </small>
       </header>
 
-      <p style={{ margin: "6px 0 8px", color: "#374151" }}>
-        {formatISODate(e.date)} • {e.location}
-      </p>
-      <p style={{ margin: "6px 0 8px", color: "#374151" }}>${e.price_usd.toFixed(2)}</p>
+      <p style={{ margin: "6px 0 8px" }}>{formatISODate(e.date)} • {e.location}</p>
+      <p style={{ margin: "6px 0 8px" }}>${e.price_usd.toFixed(2)}</p>
 
-      <footer style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <a
-          href={mapsHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ ...pill, textDecoration: "none", display: "inline-block" }}
-        >
+      <div className="row">
+        <a className="btn btn-outline" href={mapsHref} target="_blank" rel="noopener noreferrer">
           Get Directions
         </a>
-        <button style={pill} onClick={callDriver}>Call Driver</button>
-        <button style={pill} onClick={() => alert("Ticket flow coming soon")}>Book Tickets</button>
-        {note && <span style={{ fontSize: 12, color: "#065f46" }}>{note}</span>}
-      </footer>
-    </article>
+        <Button variant="outline" onClick={callDriver}>Call Driver</Button>
+        <Button variant="outline" onClick={() => alert("Ticket flow coming soon")}>
+          Book Tickets
+        </Button>
+        {note && <span style={{ fontSize: 12, color: "#10b981" }}>{note}</span>}
+      </div>
+    </Card>
   );
 }
-
-const card = {
-  width: 320,
-  minWidth: 320,
-  scrollSnapAlign: "start",
-  border: "1px solid #e5e7eb",
-  borderRadius: 12,
-  padding: 12,
-  background: "#fff",
-} as const;
-
-const pill = {
-  border: "1px solid #d1d5db",
-  padding: "6px 10px",
-  borderRadius: 999,
-  background: "#f9fafb",
-  cursor: "pointer",
-  fontSize: 13,
-} as const;

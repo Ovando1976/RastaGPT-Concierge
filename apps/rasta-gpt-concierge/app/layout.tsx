@@ -1,11 +1,19 @@
-import * as React from "react";
+import "./globals.css";
+import { Inter } from "next/font/google";
+import AuthProvider from "./components/AuthProvider";
 
-export const metadata = { title: "RastaGPT Concierge", description: "USVI inside ChatGPT" };
+
+const inter = Inter({ subsets: ["latin"], display: "swap" });
+
+export const metadata = {
+  title: "RastaGPT Concierge",
+  description: "USVI food, beaches, and events—right inside ChatGPT/Claude.",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body style={{ fontFamily: "system-ui, -apple-system, Segoe UI, Roboto" }}>{children}</body>
+      <body><AuthProvider>{children}</AuthProvider></body>
     </html>
   );
 }

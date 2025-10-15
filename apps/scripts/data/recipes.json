@@ -1,0 +1,991 @@
+[
+  {
+    "slug": "johnny-cakes",
+    "name": "Johnny Cakes",
+    "altNames": ["Fried Bakes"],
+    "region": "Anglophone",
+    "country": "USVI",
+    "island": "St. Thomas",
+    "cuisine": "USVI",
+    "category": "bread",
+    "tags": ["breakfast", "fried", "street"],
+    "servings": 6,
+    "prepTimeISO": "PT10M",
+    "cookTimeISO": "PT15M",
+    "totalTimeISO": "PT25M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 2, "unit": "cup", "item": "all-purpose flour" },
+      { "qty": 2, "unit": "tbsp", "item": "sugar" },
+      { "qty": 2, "unit": "tsp", "item": "baking powder" },
+      { "qty": 0.5, "unit": "tsp", "item": "salt" },
+      { "qty": 2, "unit": "tbsp", "item": "butter", "note": "softened" },
+      { "qty": 0.75, "unit": "cup", "item": "water", "note": "as needed" },
+      { "qty": 1, "unit": "cup", "item": "oil", "note": "for frying" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Whisk flour, sugar, baking powder, and salt." },
+      { "n": 2, "text": "Cut in butter; add water to form a soft dough. Rest 10 minutes." },
+      { "n": 3, "text": "Portion into balls, flatten into rounds." },
+      { "n": 4, "text": "Fry in 350°F/175°C oil until golden, 2–3 minutes per side. Drain." }
+    ],
+    "imageUrl": "/images/recipes/johnny-cakes.jpg",
+    "price_usd": 8,
+    "restaurant": "3 Little Birds",
+    "approved": true
+  },
+  {
+    "slug": "conch-fritters",
+    "name": "Conch Fritters",
+    "region": "Anglophone",
+    "country": "USVI",
+    "cuisine": "USVI",
+    "category": "seafood",
+    "tags": ["snack", "fritter", "party"],
+    "servings": 4,
+    "prepTimeISO": "PT15M",
+    "cookTimeISO": "PT10M",
+    "totalTimeISO": "PT25M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 1, "unit": "cup", "item": "conch", "note": "finely chopped" },
+      { "qty": 1, "unit": "cup", "item": "all-purpose flour" },
+      { "qty": 1, "unit": "tsp", "item": "baking powder" },
+      { "qty": 0.5, "unit": "tsp", "item": "salt" },
+      { "qty": 1, "unit": null, "item": "scotch bonnet", "note": "minced, to taste" },
+      { "qty": 2, "unit": "tbsp", "item": "cilantro", "note": "chopped" },
+      { "qty": 1, "unit": null, "item": "egg" },
+      { "qty": 0.75, "unit": "cup", "item": "water" },
+      { "qty": 1, "unit": "cup", "item": "oil", "note": "for frying" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Mix flour, baking powder, and salt. Fold in conch, pepper, cilantro." },
+      { "n": 2, "text": "Beat egg with water and stir into dry mix to make a thick batter." },
+      { "n": 3, "text": "Drop spoonfuls into 350°F/175°C oil; fry 3–4 minutes total until browned. Drain." }
+    ],
+    "imageUrl": "/images/recipes/conch-fritters.jpg",
+    "price_usd": 16,
+    "restaurant": "3 Little Birds",
+    "approved": true
+  },
+  {
+    "slug": "callaloo-soup-usvi",
+    "name": "Callaloo Soup",
+    "region": "Anglophone",
+    "country": "USVI",
+    "cuisine": "USVI",
+    "category": "stew",
+    "tags": ["green", "soup", "family"],
+    "servings": 6,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT40M",
+    "totalTimeISO": "PT1H",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 1, "unit": "lb", "item": "callaloo greens", "note": "or spinach" },
+      { "qty": 0.5, "unit": "lb", "item": "okra", "note": "sliced" },
+      { "qty": 0.5, "unit": "lb", "item": "saltfish", "note": "desalted, flaked" },
+      { "qty": 1, "unit": null, "item": "onion", "note": "chopped" },
+      { "qty": 2, "unit": "clove", "item": "garlic", "note": "minced" },
+      { "qty": 1, "unit": "tsp", "item": "thyme" },
+      { "qty": 4, "unit": "cup", "item": "stock" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Sauté onion and garlic in oil; add okra and thyme." },
+      { "n": 2, "text": "Add stock and greens; simmer 30–40 minutes until tender." },
+      { "n": 3, "text": "Fold in flaked saltfish; season and serve." }
+    ],
+    "imageUrl": "/images/recipes/callaloo.jpg",
+    "price_usd": 18,
+    "restaurant": "Rare Avatar",
+    "approved": true
+  },
+  {
+    "slug": "jerk-chicken",
+    "name": "Jerk Chicken",
+    "region": "Anglophone",
+    "country": "Jamaica",
+    "cuisine": "Jamaican",
+    "category": "stew",
+    "tags": ["grilled", "spicy", "iconic"],
+    "servings": 4,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT45M",
+    "totalTimeISO": "PT1H5M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 3, "unit": "lb", "item": "chicken pieces" },
+      { "qty": 4, "unit": null, "item": "scallions", "note": "chopped" },
+      { "qty": 1, "unit": null, "item": "onion", "note": "chopped" },
+      { "qty": 3, "unit": "clove", "item": "garlic" },
+      { "qty": 1, "unit": "tbsp", "item": "allspice" },
+      { "qty": 1, "unit": "tsp", "item": "thyme" },
+      { "qty": 2, "unit": null, "item": "scotch bonnets", "note": "seeded to taste" },
+      { "qty": 2, "unit": "tbsp", "item": "brown sugar" },
+      { "qty": 2, "unit": "tbsp", "item": "soy sauce" },
+      { "qty": 1, "unit": "tbsp", "item": "lime juice" },
+      { "qty": 1, "unit": "tbsp", "item": "vegetable oil" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Blend marinade; coat chicken and marinate 4–12 hours." },
+      { "n": 2, "text": "Grill or roast at 400°F/205°C until cooked through and charred, 35–45 minutes." },
+      { "n": 3, "text": "Rest 5 minutes; serve with rice & peas." }
+    ],
+    "imageUrl": "/images/recipes/jerk-chicken.jpg",
+    "approved": true
+  },
+  {
+    "slug": "curry-goat",
+    "name": "Curry Goat",
+    "region": "Anglophone",
+    "country": "Jamaica",
+    "cuisine": "Jamaican",
+    "category": "stew",
+    "tags": ["goat", "curry", "comfort"],
+    "servings": 6,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT1H30M",
+    "totalTimeISO": "PT1H50M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 2, "unit": "lb", "item": "goat meat", "note": "cubed" },
+      { "qty": 2, "unit": "tbsp", "item": "curry powder" },
+      { "qty": 1, "unit": "tsp", "item": "allspice" },
+      { "qty": 1, "unit": null, "item": "onion", "note": "sliced" },
+      { "qty": 2, "unit": "clove", "item": "garlic", "note": "minced" },
+      { "qty": 1, "unit": null, "item": "scotch bonnet", "note": "sliced" },
+      { "qty": 3, "unit": "cup", "item": "stock" },
+      { "qty": 2, "unit": "tbsp", "item": "oil" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Season goat with curry, allspice, salt." },
+      { "n": 2, "text": "Brown in oil; add aromatics and cook briefly." },
+      { "n": 3, "text": "Add stock; simmer covered 70–90 minutes until tender." }
+    ],
+    "imageUrl": "/images/recipes/curry-goat.jpg",
+    "approved": true
+  },
+  {
+    "slug": "oxtail-stew",
+    "name": "Oxtail Stew",
+    "region": "Anglophone",
+    "country": "Jamaica",
+    "cuisine": "Jamaican",
+    "category": "stew",
+    "tags": ["slow-cooked", "comfort"],
+    "servings": 6,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT2H",
+    "totalTimeISO": "PT2H20M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 3, "unit": "lb", "item": "oxtail" },
+      { "qty": 1, "unit": null, "item": "onion", "note": "chopped" },
+      { "qty": 2, "unit": "clove", "item": "garlic" },
+      { "qty": 2, "unit": "tbsp", "item": "browning sauce", "note": "optional" },
+      { "qty": 2, "unit": "cup", "item": "stock" },
+      { "qty": 1, "unit": "tsp", "item": "thyme" },
+      { "qty": 1, "unit": "tbsp", "item": "soy sauce" },
+      { "qty": 1, "unit": "cup", "item": "butter beans", "note": "drained" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Brown oxtail; sauté aromatics." },
+      { "n": 2, "text": "Add liquids and thyme; simmer covered until tender, ~2 hours." },
+      { "n": 3, "text": "Stir in butter beans; simmer 10 minutes more." }
+    ],
+    "imageUrl": "/images/recipes/oxtail-stew.jpg",
+    "approved": true
+  },
+  {
+    "slug": "escovitch-fish",
+    "name": "Escovitch Fish",
+    "region": "Anglophone",
+    "country": "Jamaica",
+    "cuisine": "Jamaican",
+    "category": "seafood",
+    "tags": ["fried", "vinegar", "pepper"],
+    "servings": 4,
+    "prepTimeISO": "PT15M",
+    "cookTimeISO": "PT20M",
+    "totalTimeISO": "PT35M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 2, "unit": "lb", "item": "whole snapper", "note": "scaled and scored" },
+      { "qty": 1, "unit": "cup", "item": "oil", "note": "for frying" },
+      { "qty": 1, "unit": null, "item": "onion", "note": "thinly sliced" },
+      { "qty": 1, "unit": null, "item": "bell pepper", "note": "sliced" },
+      { "qty": 1, "unit": null, "item": "carrot", "note": "julienned" },
+      { "qty": 0.5, "unit": "cup", "item": "vinegar" },
+      { "qty": 0.25, "unit": "cup", "item": "water" },
+      { "qty": 1, "unit": "tsp", "item": "sugar" },
+      { "qty": 1, "unit": null, "item": "scotch bonnet", "note": "sliced" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Season fish with salt and pepper; fry until crisp and cooked." },
+      { "n": 2, "text": "In a pan, sauté vegetables; add vinegar, water, sugar, and pepper." },
+      { "n": 3, "text": "Pour hot pickle over fried fish; rest 10 minutes before serving." }
+    ],
+    "imageUrl": "/images/recipes/escovitch-fish.jpg",
+    "approved": true
+  },
+  {
+    "slug": "rice-and-peas",
+    "name": "Rice & Peas",
+    "region": "Anglophone",
+    "country": "Jamaica",
+    "cuisine": "Jamaican",
+    "category": "rice",
+    "tags": ["side", "coconut", "pigeon-peas"],
+    "servings": 6,
+    "prepTimeISO": "PT10M",
+    "cookTimeISO": "PT35M",
+    "totalTimeISO": "PT45M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 2, "unit": "cup", "item": "long grain rice", "note": "rinsed" },
+      { "qty": 1, "unit": "can", "item": "coconut milk" },
+      { "qty": 1.5, "unit": "cup", "item": "water" },
+      { "qty": 1, "unit": "cup", "item": "pigeon peas", "note": "cooked or canned" },
+      { "qty": 2, "unit": null, "item": "scallions", "note": "smashed" },
+      { "qty": 1, "unit": "tsp", "item": "thyme" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Combine coconut milk, water, peas, scallion, thyme; bring to a simmer." },
+      { "n": 2, "text": "Add rice; cover and cook until tender, ~18 minutes. Rest 10 minutes." }
+    ],
+    "imageUrl": "/images/recipes/rice-and-peas.jpg",
+    "approved": true
+  },
+  {
+    "slug": "ackee-and-saltfish",
+    "name": "Ackee & Saltfish",
+    "region": "Anglophone",
+    "country": "Jamaica",
+    "cuisine": "Jamaican",
+    "category": "stew",
+    "tags": ["breakfast", "national-dish"],
+    "servings": 4,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT15M",
+    "totalTimeISO": "PT35M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 0.75, "unit": "lb", "item": "saltfish", "note": "desalted, flaked" },
+      { "qty": 1, "unit": "can", "item": "ackee", "note": "drained gently" },
+      { "qty": 1, "unit": null, "item": "onion", "note": "sliced" },
+      { "qty": 2, "unit": null, "item": "scallions", "note": "sliced" },
+      { "qty": 1, "unit": null, "item": "tomato", "note": "diced" },
+      { "qty": 1, "unit": "tsp", "item": "thyme" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Sauté onion, scallion, and tomato in oil." },
+      { "n": 2, "text": "Fold in flaked saltfish, then ackee. Warm gently; avoid breaking ackee." }
+    ],
+    "imageUrl": "/images/recipes/ackee-saltfish.jpg",
+    "approved": true
+  },
+  {
+    "slug": "pepperpot-guyana",
+    "name": "Pepperpot Stew",
+    "region": "Anglophone",
+    "country": "Guyana",
+    "cuisine": "Guyanese",
+    "category": "stew",
+    "tags": ["cassareep", "holiday", "beef"],
+    "servings": 6,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT2H",
+    "totalTimeISO": "PT2H20M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 2.5, "unit": "lb", "item": "beef and oxtail", "note": "mixed" },
+      { "qty": 0.5, "unit": "cup", "item": "cassareep" },
+      { "qty": 2, "unit": "stick", "item": "cinnamon" },
+      { "qty": 6, "unit": null, "item": "cloves" },
+      { "qty": 2, "unit": "tbsp", "item": "brown sugar" },
+      { "qty": 2, "unit": "cup", "item": "water" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Brown meats; add spices, cassareep, water." },
+      { "n": 2, "text": "Simmer low ~2 hours until tender and glossy." }
+    ],
+    "imageUrl": "/images/recipes/pepperpot.jpg",
+    "approved": true
+  },
+  {
+    "slug": "cou-cou-flying-fish",
+    "name": "Cou-cou & Flying Fish",
+    "region": "Anglophone",
+    "country": "Barbados",
+    "cuisine": "Barbadian",
+    "category": "seafood",
+    "tags": ["national-dish", "polenta", "okra"],
+    "servings": 4,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT35M",
+    "totalTimeISO": "PT55M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 1, "unit": "lb", "item": "flying fish fillets" },
+      { "qty": 1, "unit": "cup", "item": "cornmeal" },
+      { "qty": 1, "unit": "cup", "item": "okra", "note": "sliced" },
+      { "qty": 2, "unit": "cup", "item": "water" },
+      { "qty": 1, "unit": null, "item": "lime", "note": "for seasoning fish" },
+      { "qty": 1, "unit": "tsp", "item": "thyme" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Season fish with lime, salt, thyme; steam gently." },
+      { "n": 2, "text": "Boil okra; whisk in cornmeal to make cou-cou (polenta-like)." },
+      { "n": 3, "text": "Serve fish over cou-cou with gravy." }
+    ],
+    "imageUrl": "/images/recipes/cou-cou-flying-fish.jpg",
+    "approved": true
+  },
+  {
+    "slug": "oil-down",
+    "name": "Oil Down",
+    "region": "Anglophone",
+    "country": "Grenada",
+    "cuisine": "Grenadian",
+    "category": "stew",
+    "tags": ["coconut", "one-pot", "breadfruit"],
+    "servings": 6,
+    "prepTimeISO": "PT25M",
+    "cookTimeISO": "PT1H15M",
+    "totalTimeISO": "PT1H40M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 1, "unit": null, "item": "breadfruit", "note": "peeled, chunked" },
+      { "qty": 2, "unit": "cup", "item": "coconut milk" },
+      { "qty": 1, "unit": "lb", "item": "salted meat or chicken", "note": "optional" },
+      { "qty": 1, "unit": "bunch", "item": "callaloo leaves", "note": "or spinach" },
+      { "qty": 1, "unit": null, "item": "carrot", "note": "sliced" },
+      { "qty": 1, "unit": null, "item": "onion", "note": "sliced" },
+      { "qty": 2, "unit": "clove", "item": "garlic", "note": "minced" },
+      { "qty": 1, "unit": "tsp", "item": "thyme" },
+      { "qty": 1, "unit": null, "item": "scotch bonnet", "note": "left whole for aroma" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Layer pot with meat (if using), breadfruit, onions, carrot, callaloo." },
+      { "n": 2, "text": "Pour in coconut milk; add thyme and pepper. Cover tightly." },
+      { "n": 3, "text": "Simmer on low until liquid reduces (“oils down”) and breadfruit is tender, 60–75 minutes." }
+    ],
+    "imageUrl": "/images/recipes/oil-down.jpg",
+    "approved": true
+  },
+  {
+    "slug": "fish-cakes-barbados",
+    "name": "Fish Cakes (Barbados)",
+    "region": "Anglophone",
+    "country": "Barbados",
+    "cuisine": "Barbadian",
+    "category": "snack",
+    "tags": ["saltfish", "fritter", "street"],
+    "servings": 6,
+    "prepTimeISO": "PT15M",
+    "cookTimeISO": "PT10M",
+    "totalTimeISO": "PT25M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 8, "unit": "oz", "item": "saltfish", "note": "desalted, flaked" },
+      { "qty": 1, "unit": "cup", "item": "flour" },
+      { "qty": 1, "unit": "tsp", "item": "baking powder" },
+      { "qty": 1, "unit": null, "item": "spring onion", "note": "sliced" },
+      { "qty": 0.75, "unit": "cup", "item": "water" },
+      { "qty": 1, "unit": "cup", "item": "oil", "note": "for frying" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Make a loose batter with flour, baking powder, water; fold in fish and scallion." },
+      { "n": 2, "text": "Fry spoonfuls in hot oil until golden." }
+    ],
+    "imageUrl": "/images/recipes/fish-cakes-barbados.jpg",
+    "approved": true
+  },
+  {
+    "slug": "doubles",
+    "name": "Doubles",
+    "region": "Anglophone",
+    "country": "Trinidad & Tobago",
+    "cuisine": "Trinidadian",
+    "category": "snack",
+    "tags": ["street", "chickpea", "flatbread"],
+    "servings": 4,
+    "prepTimeISO": "PT40M",
+    "cookTimeISO": "PT20M",
+    "totalTimeISO": "PT1H",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 2, "unit": "cup", "item": "flour" },
+      { "qty": 1, "unit": "tsp", "item": "baking powder" },
+      { "qty": 1, "unit": "tsp", "item": "turmeric" },
+      { "qty": 0.75, "unit": "cup", "item": "water" },
+      { "qty": 1, "unit": "tbsp", "item": "oil" },
+      { "qty": 2, "unit": "cup", "item": "curried chickpeas (channa)" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Mix bara dough (flour, baking powder, turmeric, water, oil); rest 30 minutes." },
+      { "n": 2, "text": "Fry small disks 30–40 seconds per side." },
+      { "n": 3, "text": "Serve with hot channa and chutneys." }
+    ],
+    "imageUrl": "/images/recipes/doubles.jpg",
+    "approved": true
+  },
+  {
+    "slug": "bake-and-shark",
+    "name": "Bake & Shark",
+    "region": "Anglophone",
+    "country": "Trinidad & Tobago",
+    "cuisine": "Trinidadian",
+    "category": "main",
+    "tags": ["fried", "sandwich", "beach"],
+    "servings": 4,
+    "prepTimeISO": "PT30M",
+    "cookTimeISO": "PT20M",
+    "totalTimeISO": "PT50M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 1.5, "unit": "lb", "item": "white fish", "note": "shark or firm substitute" },
+      { "qty": 2, "unit": "cup", "item": "flour" },
+      { "qty": 1, "unit": "tsp", "item": "baking powder" },
+      { "qty": 0.75, "unit": "cup", "item": "water" },
+      { "qty": 2, "unit": "cup", "item": "oil", "note": "for frying" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Season fish; set aside." },
+      { "n": 2, "text": "Mix and fry “bake” breads until puffed." },
+      { "n": 3, "text": "Fry fish; assemble sandwiches with sauces and slaw." }
+    ],
+    "imageUrl": "/images/recipes/bake-and-shark.jpg",
+    "approved": true
+  },
+  {
+    "slug": "buss-up-shut",
+    "name": "Buss-Up-Shut Roti",
+    "region": "Anglophone",
+    "country": "Trinidad & Tobago",
+    "cuisine": "Trinidadian",
+    "category": "bread",
+    "tags": ["roti", "paratha", "flaky"],
+    "servings": 6,
+    "prepTimeISO": "PT30M",
+    "cookTimeISO": "PT20M",
+    "totalTimeISO": "PT50M",
+    "difficulty": "hard",
+    "ingredients": [
+      { "qty": 3, "unit": "cup", "item": "flour" },
+      { "qty": 1, "unit": "tsp", "item": "baking powder" },
+      { "qty": 1, "unit": "tbsp", "item": "ghee" },
+      { "qty": 1, "unit": "cup", "item": "water", "note": "as needed" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Knead soft dough; rest 20 minutes." },
+      { "n": 2, "text": "Cook on tawa; bash/tear to make flaky layers." }
+    ],
+    "imageUrl": "/images/recipes/buss-up-shut.jpg",
+    "approved": true
+  },
+  {
+    "slug": "trini-pelau",
+    "name": "Trini Pelau",
+    "region": "Anglophone",
+    "country": "Trinidad & Tobago",
+    "cuisine": "Trinidadian",
+    "category": "main",
+    "tags": ["one-pot", "caramelize", "rice"],
+    "servings": 6,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT45M",
+    "totalTimeISO": "PT1H5M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 1.5, "unit": "lb", "item": "chicken thighs" },
+      { "qty": 1, "unit": "cup", "item": "rice" },
+      { "qty": 0.5, "unit": "cup", "item": "pigeon peas" },
+      { "qty": 2, "unit": "tbsp", "item": "brown sugar" },
+      { "qty": 1, "unit": null, "item": "carrot", "note": "diced" },
+      { "qty": 1, "unit": "cup", "item": "coconut milk" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Caramelize sugar; brown chicken." },
+      { "n": 2, "text": "Add rice, peas, veg, coconut milk; simmer until rice is tender." }
+    ],
+    "imageUrl": "/images/recipes/trini-pelau.jpg",
+    "approved": true
+  },
+  {
+    "slug": "mofongo",
+    "name": "Mofongo",
+    "region": "Hispanic",
+    "country": "Puerto Rico",
+    "cuisine": "Puerto Rican",
+    "category": "main",
+    "tags": ["plantain", "garlic", "mash"],
+    "servings": 4,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT20M",
+    "totalTimeISO": "PT40M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 4, "unit": null, "item": "green plantains" },
+      { "qty": 4, "unit": "clove", "item": "garlic" },
+      { "qty": 0.25, "unit": "cup", "item": "pork cracklings", "note": "chicharrón" },
+      { "qty": 0.25, "unit": "cup", "item": "oil" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Fry plantain pieces until golden." },
+      { "n": 2, "text": "Pound with garlic and cracklings; form mounds." },
+      { "n": 3, "text": "Serve with broth or stewed meats." }
+    ],
+    "imageUrl": "/images/recipes/mofongo.jpg",
+    "approved": true
+  },
+  {
+    "slug": "arroz-con-gandules",
+    "name": "Arroz con Gandules",
+    "region": "Hispanic",
+    "country": "Puerto Rico",
+    "cuisine": "Puerto Rican",
+    "category": "rice",
+    "tags": ["pigeon-peas", "sofrito"],
+    "servings": 6,
+    "prepTimeISO": "PT15M",
+    "cookTimeISO": "PT30M",
+    "totalTimeISO": "PT45M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 2, "unit": "cup", "item": "rice" },
+      { "qty": 1, "unit": "cup", "item": "gandules", "note": "pigeon peas" },
+      { "qty": 2, "unit": "tbsp", "item": "sofrito" },
+      { "qty": 2, "unit": "tbsp", "item": "oil" },
+      { "qty": 2.5, "unit": "cup", "item": "water" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Sauté sofrito in oil; add rice and peas." },
+      { "n": 2, "text": "Add water; simmer covered until rice is tender." }
+    ],
+    "imageUrl": "/images/recipes/arroz-gandules.jpg",
+    "approved": true
+  },
+  {
+    "slug": "pernil",
+    "name": "Pernil (Roast Pork)",
+    "region": "Hispanic",
+    "country": "Puerto Rico",
+    "cuisine": "Puerto Rican",
+    "category": "main",
+    "tags": ["roast", "garlic", "holiday"],
+    "servings": 8,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT3H",
+    "totalTimeISO": "PT3H20M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 5, "unit": "lb", "item": "pork shoulder" },
+      { "qty": 6, "unit": "clove", "item": "garlic", "note": "pasted" },
+      { "qty": 2, "unit": "tsp", "item": "oregano" },
+      { "qty": 1, "unit": "tbsp", "item": "vinegar" },
+      { "qty": 1, "unit": "tbsp", "item": "salt" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Score pork; rub with garlic paste, oregano, vinegar, salt." },
+      { "n": 2, "text": "Roast 300–325°F (150–165°C) until tender with crisp skin, ~3 hours." }
+    ],
+    "imageUrl": "/images/recipes/pernil.jpg",
+    "approved": true
+  },
+  {
+    "slug": "sancocho-dominicano",
+    "name": "Sancocho Dominicano",
+    "region": "Hispanic",
+    "country": "Dominican Republic",
+    "cuisine": "Dominican",
+    "category": "stew",
+    "tags": ["root-veg", "family"],
+    "servings": 8,
+    "prepTimeISO": "PT30M",
+    "cookTimeISO": "PT2H",
+    "totalTimeISO": "PT2H30M",
+    "difficulty": "hard",
+    "ingredients": [
+      { "qty": 2, "unit": "lb", "item": "mixed meats" },
+      { "qty": 1, "unit": null, "item": "yuca" },
+      { "qty": 1, "unit": null, "item": "plantain" },
+      { "qty": 1, "unit": null, "item": "yam" },
+      { "qty": 1, "unit": null, "item": "corn", "note": "chunks" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Brown meats; add water and simmer with aromatics." },
+      { "n": 2, "text": "Add root vegetables; cook until tender and stew is rich." }
+    ],
+    "imageUrl": "/images/recipes/sancocho-dominicano.jpg",
+    "approved": true
+  },
+  {
+    "slug": "griot-haiti",
+    "name": "Griot",
+    "region": "Hispanic",
+    "country": "Haiti",
+    "cuisine": "Haitian",
+    "category": "main",
+    "tags": ["fried pork", "pikliz"],
+    "servings": 6,
+    "prepTimeISO": "PT30M",
+    "cookTimeISO": "PT50M",
+    "totalTimeISO": "PT1H20M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 3, "unit": "lb", "item": "pork shoulder", "note": "chunks" },
+      { "qty": 1, "unit": "cup", "item": "sour orange juice", "note": "or lime" },
+      { "qty": 4, "unit": "clove", "item": "garlic" },
+      { "qty": 1, "unit": "tsp", "item": "thyme" },
+      { "qty": 2, "unit": "cup", "item": "oil", "note": "for frying" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Marinate pork with citrus, garlic, thyme; simmer until tender." },
+      { "n": 2, "text": "Fry until crisp; serve with pikliz." }
+    ],
+    "imageUrl": "/images/recipes/griot.jpg",
+    "approved": true
+  },
+  {
+    "slug": "lechon-asado",
+    "name": "Lechón Asado",
+    "region": "Hispanic",
+    "country": "Cuba",
+    "cuisine": "Cuban",
+    "category": "main",
+    "tags": ["roast pork", "mojo"],
+    "servings": 8,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT3H",
+    "totalTimeISO": "PT3H20M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 5, "unit": "lb", "item": "pork shoulder" },
+      { "qty": 6, "unit": "clove", "item": "garlic" },
+      { "qty": 0.5, "unit": "cup", "item": "sour orange juice" },
+      { "qty": 1, "unit": "tsp", "item": "oregano" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Marinate pork in mojo (citrus, garlic, oregano)." },
+      { "n": 2, "text": "Roast low and slow until tender; crisp skin under high heat." }
+    ],
+    "imageUrl": "/images/recipes/lechon-asado.jpg",
+    "approved": true
+  },
+  {
+    "slug": "tostones",
+    "name": "Tostones",
+    "region": "Hispanic",
+    "country": "Puerto Rico / Dominican Republic / Cuba",
+    "cuisine": "Caribbean",
+    "category": "side",
+    "tags": ["plantain", "fried", "snack"],
+    "servings": 4,
+    "prepTimeISO": "PT10M",
+    "cookTimeISO": "PT10M",
+    "totalTimeISO": "PT20M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 3, "unit": null, "item": "green plantains" },
+      { "qty": 1, "unit": "cup", "item": "oil", "note": "for frying" },
+      { "qty": 1, "unit": "tsp", "item": "salt" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Fry slices 2–3 minutes; smash into disks." },
+      { "n": 2, "text": "Refry to crisp; season with salt." }
+    ],
+    "imageUrl": "/images/recipes/tostones.jpg",
+    "approved": true
+  },
+  {
+    "slug": "conch-salad-bahamas",
+    "name": "Conch Salad",
+    "region": "Anglophone",
+    "country": "Bahamas",
+    "cuisine": "Bahamian",
+    "category": "salad",
+    "tags": ["raw", "citrus", "seafood"],
+    "servings": 4,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT0M",
+    "totalTimeISO": "PT20M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 1, "unit": "cup", "item": "conch", "note": "diced" },
+      { "qty": 0.5, "unit": null, "item": "onion", "note": "diced" },
+      { "qty": 0.5, "unit": null, "item": "bell pepper", "note": "diced" },
+      { "qty": 0.5, "unit": "cup", "item": "lime juice" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Combine conch and vegetables." },
+      { "n": 2, "text": "Dress with lime; chill briefly." }
+    ],
+    "imageUrl": "/images/recipes/conch-salad.jpg",
+    "approved": true
+  },
+  {
+    "slug": "cracked-conch",
+    "name": "Cracked Conch",
+    "region": "Anglophone",
+    "country": "Bahamas",
+    "cuisine": "Bahamian",
+    "category": "main",
+    "tags": ["fried", "seafood", "tenderize"],
+    "servings": 4,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT8M",
+    "totalTimeISO": "PT28M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 1, "unit": "lb", "item": "conch", "note": "pounded" },
+      { "qty": 1, "unit": "cup", "item": "flour" },
+      { "qty": 1, "unit": "cup", "item": "oil", "note": "for frying" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Dredge tenderized conch in flour." },
+      { "n": 2, "text": "Fry until golden; drain." }
+    ],
+    "imageUrl": "/images/recipes/cracked-conch.jpg",
+    "approved": true
+  },
+  {
+    "slug": "peas-and-rice-bahamas",
+    "name": "Peas & Rice",
+    "region": "Anglophone",
+    "country": "Bahamas",
+    "cuisine": "Bahamian",
+    "category": "rice",
+    "tags": ["pigeon-peas", "rice", "tomato"],
+    "servings": 6,
+    "prepTimeISO": "PT10M",
+    "cookTimeISO": "PT30M",
+    "totalTimeISO": "PT40M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 1, "unit": "cup", "item": "rice" },
+      { "qty": 1, "unit": "cup", "item": "pigeon peas" },
+      { "qty": 2, "unit": "tbsp", "item": "tomato paste" },
+      { "qty": 2, "unit": "tbsp", "item": "oil" },
+      { "qty": 2, "unit": "cup", "item": "water" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Sauté tomato paste in oil; add rice and peas." },
+      { "n": 2, "text": "Add water; simmer covered until rice is tender." }
+    ],
+    "imageUrl": "/images/recipes/peas-and-rice.jpg",
+    "approved": true
+  },
+  {
+    "slug": "hudut-belize",
+    "name": "Hudut",
+    "region": "Anglophone",
+    "country": "Belize",
+    "cuisine": "Belizean",
+    "category": "main",
+    "tags": ["fish", "coconut", "plantain"],
+    "servings": 4,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT30M",
+    "totalTimeISO": "PT50M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 1, "unit": "lb", "item": "fish fillet" },
+      { "qty": 1, "unit": "can", "item": "coconut milk" },
+      { "qty": 2, "unit": null, "item": "ripe plantains", "note": "boiled, mashed" },
+      { "qty": 1, "unit": null, "item": "green plantain", "note": "boiled, mashed" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Simmer fish in coconut broth." },
+      { "n": 2, "text": "Mash plantains (ripe + green) separately; serve with fish." }
+    ],
+    "imageUrl": "/images/recipes/hudut.jpg",
+    "approved": true
+  },
+  {
+    "slug": "fry-jacks-belize",
+    "name": "Fry Jacks",
+    "region": "Anglophone",
+    "country": "Belize",
+    "cuisine": "Belizean",
+    "category": "bread",
+    "tags": ["breakfast", "fried", "puffy"],
+    "servings": 6,
+    "prepTimeISO": "PT10M",
+    "cookTimeISO": "PT10M",
+    "totalTimeISO": "PT20M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 2, "unit": "cup", "item": "flour" },
+      { "qty": 1, "unit": "tsp", "item": "baking powder" },
+      { "qty": 0.75, "unit": "cup", "item": "water" },
+      { "qty": 1, "unit": "tbsp", "item": "oil" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Mix dough; rest 10 minutes." },
+      { "n": 2, "text": "Roll and fry triangles until puffed." }
+    ],
+    "imageUrl": "/images/recipes/fry-jacks.jpg",
+    "approved": true
+  },
+  {
+    "slug": "keshi-yena",
+    "name": "Keshi Yena",
+    "region": "Dutch",
+    "country": "Aruba/Curacao",
+    "cuisine": "Curaçaoan",
+    "category": "main",
+    "tags": ["stuffed-cheese", "bake", "party"],
+    "servings": 6,
+    "prepTimeISO": "PT30M",
+    "cookTimeISO": "PT45M",
+    "totalTimeISO": "PT1H15M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 1, "unit": null, "item": "edam shell or baking dish lined with cheese" },
+      { "qty": 1.5, "unit": "lb", "item": "chicken", "note": "shredded" },
+      { "qty": 0.5, "unit": null, "item": "bell pepper", "note": "diced" },
+      { "qty": 0.25, "unit": null, "item": "olives", "note": "sliced" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Sauté filling; season." },
+      { "n": 2, "text": "Pack into cheese shell/dish; bake until set and browned." }
+    ],
+    "imageUrl": "/images/recipes/keshi-yena.jpg",
+    "approved": true
+  },
+  {
+    "slug": "callaloo-trini",
+    "name": "Callaloo (Dasheen)",
+    "region": "Anglophone",
+    "country": "Trinidad & Tobago",
+    "cuisine": "Trinidadian",
+    "category": "stew",
+    "tags": ["green", "dasheen", "sunday"],
+    "servings": 6,
+    "prepTimeISO": "PT15M",
+    "cookTimeISO": "PT45M",
+    "totalTimeISO": "PT1H",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 1, "unit": null, "item": "dasheen leaves", "note": "or spinach" },
+      { "qty": 0.5, "unit": "lb", "item": "okra", "note": "sliced" },
+      { "qty": 1, "unit": "can", "item": "coconut milk" },
+      { "qty": 1, "unit": "sprig", "item": "thyme" },
+      { "qty": 1, "unit": null, "item": "scotch bonnet", "note": "whole" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Simmer leaves, okra, coconut milk, thyme, pepper until tender." },
+      { "n": 2, "text": "Remove pepper; blend or whisk to desired texture." }
+    ],
+    "imageUrl": "/images/recipes/callaloo-trini.jpg",
+    "approved": true
+  },
+  {
+    "slug": "jamaican-patty",
+    "name": "Jamaican Beef Patty",
+    "region": "Anglophone",
+    "country": "Jamaica",
+    "cuisine": "Jamaican",
+    "category": "snack",
+    "tags": ["street", "pastry", "spiced"],
+    "servings": 6,
+    "prepTimeISO": "PT30M",
+    "cookTimeISO": "PT25M",
+    "totalTimeISO": "PT55M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 2, "unit": "cup", "item": "flour" },
+      { "qty": 0.5, "unit": "cup", "item": "butter", "note": "cold, diced" },
+      { "qty": 1, "unit": "tsp", "item": "turmeric" },
+      { "qty": 0.75, "unit": "lb", "item": "ground beef" },
+      { "qty": 1, "unit": null, "item": "onion", "note": "chopped" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Make turmeric pastry; chill." },
+      { "n": 2, "text": "Cook spiced beef filling." },
+      { "n": 3, "text": "Fill and bake until golden." }
+    ],
+    "imageUrl": "/images/recipes/jamaican-patty.jpg",
+    "approved": true
+  },
+  {
+    "slug": "pate-usvi",
+    "name": "Pâté (USVI)",
+    "region": "Anglophone",
+    "country": "USVI",
+    "cuisine": "USVI",
+    "category": "snack",
+    "tags": ["fried", "stuffed", "street"],
+    "servings": 6,
+    "prepTimeISO": "PT25M",
+    "cookTimeISO": "PT20M",
+    "totalTimeISO": "PT45M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 2, "unit": "cup", "item": "flour" },
+      { "qty": 1, "unit": "tsp", "item": "baking powder" },
+      { "qty": 0.75, "unit": "cup", "item": "water" },
+      { "qty": 0.75, "unit": "lb", "item": "seasoned meat or conch" },
+      { "qty": 2, "unit": "cup", "item": "oil", "note": "for frying" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Mix dough; rest 15 minutes." },
+      { "n": 2, "text": "Fill with spiced meat; fry until golden." }
+    ],
+    "imageUrl": "/images/recipes/pate-usvi.jpg",
+    "approved": true
+  },
+  {
+    "slug": "dumb-bread-usvi",
+    "name": "Dumb Bread",
+    "region": "Anglophone",
+    "country": "USVI",
+    "cuisine": "USVI",
+    "category": "bread",
+    "tags": ["skillet", "simple", "home"],
+    "servings": 6,
+    "prepTimeISO": "PT10M",
+    "cookTimeISO": "PT25M",
+    "totalTimeISO": "PT35M",
+    "difficulty": "easy",
+    "ingredients": [
+      { "qty": 3, "unit": "cup", "item": "flour" },
+      { "qty": 1, "unit": "tbsp", "item": "baking powder" },
+      { "qty": 1, "unit": "tsp", "item": "salt" },
+      { "qty": 1, "unit": "cup", "item": "water" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Combine dry; add water to form soft dough." },
+      { "n": 2, "text": "Press into greased skillet; cook covered on low until set and lightly browned both sides." }
+    ],
+    "imageUrl": "/images/recipes/dumb-bread.jpg",
+    "approved": true
+  },
+  {
+    "slug": "red-peas-soup",
+    "name": "Red Peas Soup",
+    "region": "Anglophone",
+    "country": "USVI",
+    "cuisine": "USVI",
+    "category": "soup",
+    "tags": ["kidney beans", "dumplings"],
+    "servings": 6,
+    "prepTimeISO": "PT20M",
+    "cookTimeISO": "PT1H20M",
+    "totalTimeISO": "PT1H40M",
+    "difficulty": "medium",
+    "ingredients": [
+      { "qty": 1, "unit": "cup", "item": "kidney beans", "note": "soaked" },
+      { "qty": 1, "unit": null, "item": "carrot", "note": "diced" },
+      { "qty": 1, "unit": null, "item": "yam", "note": "chunks" },
+      { "qty": 1, "unit": null, "item": "dumplings" }
+    ],
+    "steps": [
+      { "n": 1, "text": "Simmer beans until tender." },
+      { "n": 2, "text": "Add veg and dumplings; continue simmering until everything is tender." }
+    ],
+    "imageUrl": "/images/recipes/red-peas-soup.jpg",
+    "approved": true
+  }
+]

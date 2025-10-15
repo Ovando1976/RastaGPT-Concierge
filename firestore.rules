@@ -1,0 +1,270 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    /* ---------- helpers ---------- */
+    function authed() { return request.auth != null; }
+    function uid()    { return request.auth.uid; }
+    function hasField(d, k) { return d.keys().hasAny([k]); }
+    function hasAll(d, ks)  { return d.keys().hasAll(ks); }
+    function isString(x)    { return x is string; }
+    function isBool(x)      { return x is bool; }
+    function isNum(x)       { return (x is int) || (x is float); }
+    function isTs(x)        { return x is timestamp; }
+    function isMap(x)       { return x is map; }
+
+    function isLL(m) {
+      return isMap(m) && hasAll(m, ['lat','lng']) && (m.lat is number) && (m.lng is number);
+    }
+    function isValidIsland(i) { return i == 'STT' || i == 'STJ' || i == 'STX'; }
+
+    // Custom claims
+    function hasClaim(c) { return authed() && (request.auth.token[c] == true); }
+    function isAdmin()   { return hasClaim('admin'); }
+    function isServer()  { return hasClaim('server_writer'); }
+    function isDriver()  { return hasClaim('driver'); }
+
+    /* ---------- chat helpers ---------- */
+    function isValidRole(role) {
+      return role == 'user' || role == 'assistant' || role == 'system';
+    }
+    function validFileMap(f) {
+      return (f.url is string) && (f.name is string) && (f.type is string) &&
+             ((f.size is int) || (f.size is float));
+    }
+    function validMessageCreate(d) {
+      return isValidRole(d.role)
+        && (d.uid is string)
+        && (
+             (hasField(d, 'text') && isString(d.text) && d.text.size() > 0) ||
+             (hasField(d, 'file') && (d.file is map) && validFileMap(d.file))
+           )
+        && (!hasField(d, 'name')      || isString(d.name))
+        && (!hasField(d, 'createdAt') || isTs(d.createdAt))
+        && (!hasField(d, 'text')      || (d.text.size() <= 8000));
+    }
+    function isSelf(userId) { return authed() && uid() == userId; }
+    function isServerAssistant(d) { return d.role == 'assistant' && hasClaim('assistant_writer'); }
+
+    /* ---------- users & subcollections ---------- */
+    match /users/{userId} {
+      allow read, write: if isSelf(userId) || isAdmin();
+      match /{document=**} { allow read, write: if isSelf(userId) || isAdmin(); }
+    }
+
+    /* ---------- presence ---------- */
+    match /presence/{userId} {
+      allow read:  if authed();
+      allow write: if isSelf(userId);
+    }
+
+    /* ---------- chat rooms & nested docs ---------- */
+    function roomData(roomId) {
+      return get(/databases/$(db)/documents/chatRooms/$(roomId)).data;
+    }
+    function isRoomPublic(roomId) { return roomData(roomId).isPublic == true; }
+    function isRoomOwner(roomId)  { return authed() && roomData(roomId).ownerId == uid(); }
+    function isRoomMember(roomId) { return authed() && roomData(roomId).members[uid()] != null; }
+    function canReadRoom(roomId)  { return isRoomPublic(roomId) || isRoomOwner(roomId) || isRoomMember(roomId) || isAdmin(); }
+
+    match /chatRooms/{roomId} {
+      allow create: if authed()
+                    && hasAll(request.resource.data, ['ownerId'])
+                    && request.resource.data.ownerId == uid()
+                    && (!hasField(request.resource.data, 'isPublic') || isBool(request.resource.data.isPublic));
+
+      allow read: if canReadRoom(roomId);
+
+      allow update: if isRoomOwner(roomId)
+                    && request.resource.data.ownerId == resource.data.ownerId
+                    && request.resource.data.keys().hasOnly(['ownerId','isPublic','title','description','members','updatedAt']);
+
+      allow delete: if false;
+
+      match /messages/{mid} {
+        allow read: if canReadRoom(roomId);
+        allow create: if authed()
+                      && canReadRoom(roomId)
+                      && validMessageCreate(request.resource.data)
+                      && (
+                           (request.resource.data.role != 'assistant' && request.resource.data.uid == uid())
+                           || isServerAssistant(request.resource.data)
+                         );
+        allow update, delete: if false;
+      }
+
+      match /typing/{userId} {
+        allow read:  if canReadRoom(roomId);
+        allow write: if isSelf(userId) && isRoomMember(roomId);
+      }
+    }
+
+    /* ---------- collaborative docs with ACL ---------- */
+    function docData(docId) { return get(/databases/$(db)/documents/docs/$(docId)).data; }
+    function isDocOwner(docId)   { return authed() && docData(docId).ownerId == uid(); }
+    function canWriteDoc(docId)  { return authed() && (isDocOwner(docId) || (docData(docId).writers[uid()] == true) || isAdmin()); }
+    function canReadDoc(docId)   {
+      return authed() && (
+        isDocOwner(docId) ||
+        (docData(docId).writers[uid()] == true) ||
+        (docData(docId).readers[uid()] == true) ||
+        (docData(docId).isPublic == true) ||
+        isAdmin()
+      );
+    }
+
+    match /docs/{docId} {
+      allow create: if authed() && hasAll(request.resource.data, ['ownerId']) && request.resource.data.ownerId == uid();
+      allow read:   if canReadDoc(docId);
+      allow update: if canWriteDoc(docId);
+      allow delete: if isDocOwner(docId) || isAdmin();
+
+      match /versions/{vid} {
+        allow read:   if canReadDoc(docId);
+        allow create: if canWriteDoc(docId) || hasClaim('doc_versioner') || isAdmin();
+        allow update, delete: if false;
+      }
+
+      match /comments/{cid} {
+        allow read: if canReadDoc(docId);
+        allow create: if authed() && canReadDoc(docId) && (request.resource.data.uid == uid());
+        allow update, delete: if authed() && ((resource.data.uid == uid()) || isDocOwner(docId) || isAdmin());
+      }
+    }
+
+    /* ---------- presence aggregates ---------- */
+    match /presence_meta/{roomId} {
+      allow read:  if canReadRoom(roomId);
+      allow write: if isRoomOwner(roomId) || isRoomMember(roomId) || isAdmin();
+    }
+
+    /* ---------- room memory (server-only) ---------- */
+    match /room_memory/{roomId} {
+      allow read:  if canReadRoom(roomId);
+      allow write: if false; // Admin SDK only
+      match /chunks/{chunkId} { allow read: if canReadRoom(roomId); allow write: if false; }
+    }
+
+    /* =======================================================================
+       NEW: Events / Taxi Rates / Rides / Drivers
+       ======================================================================= */
+
+    match /events/{eventId} {
+      allow read:  if true;
+      allow create, update, delete: if isAdmin() || hasClaim('events_writer') || isServer();
+    }
+
+    match /taxiRates/{rateId} {
+      allow read:  if true;
+      allow create, update, delete: if isAdmin() || hasClaim('rates_writer') || isServer();
+    }
+    match /officialTaxiRates/{rateId} {
+      allow read:  if true;
+      allow create, update, delete: if isAdmin() || hasClaim('rates_writer') || isServer();
+    }
+
+    match /drivers/{driverId} {
+      allow read: if authed();
+      allow create, update: if isSelf(driverId) || isAdmin() || hasClaim('rides_writer') || isServer();
+      allow delete: if isAdmin() || isServer();
+    }
+
+    /* ---------- rides ---------- */
+
+    function isValidStatus(s) {
+      return s == 'requested' || s == 'accepted' || s == 'enroute' || s == 'completed' || s == 'canceled';
+    }
+
+    // fare struct validation
+    function validFare(f) {
+      return isMap(f)
+        && hasAll(f, ['schema','base','subtotal','total','source'])
+        && isString(f.schema)
+        && isNum(f.base) && isNum(f.subtotal) && isNum(f.total)
+        && isString(f.source)
+        && (!hasField(f,'luggage') || isNum(f.luggage))
+        && (!hasField(f,'luggageTotal') || isNum(f.luggageTotal))
+        && (!hasField(f,'fees') || (f.fees is map));
+    }
+
+    function validRideCreate(d) {
+      return hasAll(d, ['userId','from','to','passengers','pickupAt','status'])
+        && d.userId == uid()
+        && isString(d.from) && isString(d.to)
+        && isNum(d.passengers) && d.passengers >= 1 && d.passengers <= 12
+        && (isString(d.pickupAt) || isTs(d.pickupAt))
+        && isValidStatus(d.status)
+        // optional fields
+        && (!hasField(d, 'notes') || isString(d.notes))
+        && (!hasField(d, 'luggageCount') || (isNum(d.luggageCount) && d.luggageCount >= 0))
+        && (!hasField(d, 'island') || (isString(d.island) && isValidIsland(d.island)))
+        && (!hasField(d, 'fromLL') || isLL(d.fromLL))
+        && (!hasField(d, 'toLL') || isLL(d.toLL))
+        && (!hasField(d, 'fare') || validFare(d.fare))
+        && (!hasField(d, 'driverId') || isString(d.driverId))
+        && (!hasField(d, 'createdAt') || isTs(d.createdAt))
+        && (!hasField(d, 'updatedAt') || isTs(d.updatedAt))
+        // only allowed keys
+        && d.keys().hasOnly([
+          'userId','island','from','to','fromLL','toLL','passengers','pickupAt',
+          'luggageCount','notes','fare','status','driverId','createdAt','updatedAt',
+          'rateRef','afterHours','options'
+        ]);
+    }
+
+    function rideOwner() { return authed() && resource.data.userId == uid(); }
+    function rideDriver() { return authed() && resource.data.driverId == uid(); }
+    function canReadRide() {
+      return authed() && (rideOwner() || rideDriver() || isAdmin() || hasClaim('rides_writer'));
+    }
+
+    match /rides/{rideId} {
+
+      // Drivers can read 'requested' rides to see the queue
+      allow read: if canReadRide() || (isDriver() && resource.data.status == 'requested');
+
+      // create by rider
+      allow create: if authed() && validRideCreate(request.resource.data);
+
+      // Rider can cancel or edit notes (immutable other core fields)
+      function riderUpdateAllowed() {
+        return rideOwner()
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.from   == resource.data.from
+          && request.resource.data.to     == resource.data.to
+          && request.resource.data.passengers == resource.data.passengers
+          && request.resource.data.pickupAt == resource.data.pickupAt
+          && request.resource.data.rateRef == resource.data.rateRef
+          && request.resource.data.fare == resource.data.fare
+          && request.resource.data.driverId == resource.data.driverId
+          && request.resource.data.status == ('canceled')
+          && request.resource.data.keys().hasOnly(['userId','from','to','passengers','pickupAt','rateRef','fare','driverId','status','notes','updatedAt']);
+      }
+
+      // Driver accepts a requested ride
+      function driverAccepting() {
+        return isDriver()
+          && resource.data.status == 'requested'
+          && request.resource.data.status == 'accepted'
+          && request.resource.data.driverId == uid()
+          && request.resource.data.keys().hasOnly(['status','driverId','updatedAt','notes']);
+      }
+
+      // Driver progresses own ride
+      function driverProgressing() {
+        return rideDriver()
+          && (resource.data.status == 'accepted' || resource.data.status == 'enroute')
+          && (request.resource.data.status == 'enroute' || request.resource.data.status == 'completed' || request.resource.data.status == 'accepted')
+          && request.resource.data.keys().hasOnly(['status','updatedAt','notes']);
+      }
+
+      allow update: if
+        isAdmin() || hasClaim('rides_writer') || isServer()
+        || riderUpdateAllowed()
+        || driverAccepting()
+        || driverProgressing();
+
+      allow delete: if isAdmin() || hasClaim('rides_writer') || isServer();
+    }
+  }
+}

@@ -1,5 +1,5 @@
 "use client";
-
+import { useRecipes } from "../hooks/useRecipes";
 import Carousel from "../components/Carousel";
 import RecipeCard from "../components/RecipeCard";
 import BeachCard from "../components/BeachCard";
@@ -10,6 +10,11 @@ import { EVENTS } from "../data/events";
 import EventsFilter from "../components/EventsFilter";
 
 export default function Showcase() {
+const { items, loading, error } = useRecipes(30);
+  if (error) return <div style={{color:"#ef4444"}}>Failed to load recipes: {error}</div>;
+  if (loading) return <div>Loading recipes…</div>;
+
+
   return (
     <>
       <Carousel title="🍽️ Recipes & Catering">

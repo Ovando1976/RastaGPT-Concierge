@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: concierge-server
+    env: docker
+    rootDir: apps/concierge-server
+    plan: free
+    region: oregon
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SENTRY_DSN
+        sync: false
+      - key: SENTRY_ENVIRONMENT
+        value: production
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        value: "0.2"
+      - key: SENTRY_PROFILES_SAMPLE_RATE
+        value: "0.1"

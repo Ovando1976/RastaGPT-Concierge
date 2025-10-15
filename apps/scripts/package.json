@@ -1,0 +1,19 @@
+{
+  "name": "scripts",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "seed:recipes:json": "tsx seed-recipes-json.ts data/recipes.json",
+    "check:images": "tsx check-missing-images.ts",
+    "placeholders": "tsx make-image-placeholders.ts"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "tsx": "^4.19.1",
+    "@types/node": "^22.7.4"
+  }
+}

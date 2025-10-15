@@ -9,10 +9,14 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@sentry/node": "^10.19.0",
+    "@sentry/profiling-node": "^10.19.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "express-rate-limit": "^8.1.0",
+    "firebase": "^12.4.0",
+    "firebase-admin": "^13.5.0",
     "morgan": "^1.10.1"
   },
   "devDependencies": {

@@ -50,3 +50,7 @@ htmlcov/
 .next/
 apps/*/.next/
 
+
+# deps
+node_modules/
+apps/*/node_modules/

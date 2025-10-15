@@ -1,19 +1,16 @@
-import "./globals.css";
-import { Inter } from "next/font/google";
-import ClientProviders from "./components/ClientProviders";
-
-
-const inter = Inter({ subsets: ["latin"], display: "swap" });
-
-export const metadata = {
-  title: "RastaGPT Concierge",
-  description: "USVI food, beaches, and events—right inside ChatGPT/Claude.",
-};
+// app/layout.tsx (Server Component by default)
+import  AppProvider  from "./providers.client"; // Importing the client component is OK
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // DO NOT call getFirebaseApp() here!
+  
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body><ClientProvider>{children}</ClientProvider></body>
+    <html>
+      <body>
+        <AppProvider> // Rendering the client component is OK
+          {children}
+        </AppProvider>
+      </body>
     </html>
   );
 }

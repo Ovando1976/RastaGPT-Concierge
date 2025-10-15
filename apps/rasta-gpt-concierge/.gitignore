@@ -1,1 +1,5 @@
-.vercel
+# Keep node_modules and build artifacts ignored
+.next
+node_modules
+dist
+# Do NOT ignore app/lib - we need firebase.client.ts deployed

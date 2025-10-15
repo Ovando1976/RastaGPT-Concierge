@@ -1,0 +1,11 @@
+
+# dependencies
+node_modules/
+
+# service keys & envs
+serviceAccount.json
+*.serviceAccount.json
+.svc/
+.env*
+*.pem
+*.p12

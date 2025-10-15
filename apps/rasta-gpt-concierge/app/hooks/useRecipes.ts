@@ -1,10 +1,15 @@
 "use client";
 
-import type { Recipe } from "../types";
+
+"use client";
+
 import { useEffect, useMemo, useState } from "react";
 import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
-import { getFirebaseDb } from "../lib/firebase";
+import { getFirebaseDb } from "../lib/firebase.client"; // ← update this import
 import { toRecipeCard } from "../lib/mapRecipe";
+import type { Recipe } from "../types";
+
+
 
 /** Optional filters for Firestore query */
 export type RecipeFilters = {

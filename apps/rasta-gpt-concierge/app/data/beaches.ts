@@ -1,4 +1,4 @@
-import { Beach } from "../types";
+import type { Beach } from "../types";
 
 export const BEACHES: Beach[] = [
   { id:"magens", island:"St. Thomas", name:"Magens Bay", water_temp_f:82, rip_risk:"Low",

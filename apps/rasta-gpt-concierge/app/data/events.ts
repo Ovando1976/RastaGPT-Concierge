@@ -1,4 +1,4 @@
-import { EventItem } from "../types";
+import type{ EventItem } from "../types";
 
 export const EVENTS: EventItem[] = [
   { id:"stt_carnival", title:"St. Thomas Carnival Parade", type:"Festival",

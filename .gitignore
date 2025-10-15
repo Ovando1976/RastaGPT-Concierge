@@ -45,3 +45,8 @@ htmlcov/
 # Logs
 *.log
 .vercel
+
+# Next build output
+.next/
+apps/*/.next/
+

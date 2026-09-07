@@ -3,14 +3,12 @@
   "private": true,
   "version": "1.0.0",
   "packageManager": "pnpm@10.13.1",
-  "workspaces": ["apps/*"],
   "description": "RastaGPT — Global intelligence. Caribbean consciousness.",
   "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "mcp:start": "python src/server.py"
+    "start": "next start"
   },
   "dependencies": {
     "firebase": "^10.13.2",

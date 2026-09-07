@@ -46,6 +46,13 @@ export class BudgetExceededError extends Error {
   }
 }
 
+export class RateLimitExceededError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RateLimitExceededError";
+  }
+}
+
 export class UnpricedModelError extends Error {
   constructor(model: string) {
     super(`AI model ${model} has no approved price entry. Refusing to send a billable request.`);
@@ -69,12 +76,26 @@ function explicitLimit(name: string, developmentFallback: number): number {
   return value;
 }
 
+function requestsPerMinuteLimit(): number {
+  const raw = process.env.RASTAGPT_USER_REQUESTS_PER_MINUTE;
+  if (!raw?.trim()) return 8;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 1 || value > 120) {
+    throw new Error("RASTAGPT_USER_REQUESTS_PER_MINUTE must be an integer from 1 to 120.");
+  }
+  return value;
+}
+
 function dateKey(date = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
 
 function monthKey(date = new Date()): string {
   return date.toISOString().slice(0, 7);
+}
+
+function minuteKey(date = new Date()): string {
+  return date.toISOString().slice(0, 16);
 }
 
 function numberField(document: Record<string, unknown> | null, key: string): number {
@@ -113,11 +134,6 @@ export function estimateReservationUsd(
   inputUtf8Bytes: number,
 ): number {
   const price = priceFor(plan.model);
-
-  // BPE tokenization ultimately operates on bytes. Reserving one possible
-  // input token per UTF-8 byte is deliberately conservative, then we add a
-  // fixed allowance for message-role / protocol overhead not represented in
-  // the raw text passed by the caller.
   const conservativeInputTokens = Math.max(
     1,
     Math.ceil(inputUtf8Bytes) + TOKENIZATION_OVERHEAD_RESERVE,
@@ -157,19 +173,24 @@ export async function reserveUsage(input: {
 
   const userLimit = explicitLimit("RASTAGPT_USER_DAILY_COST_USD", 0.50);
   const platformLimit = explicitLimit("RASTAGPT_PLATFORM_MONTHLY_COST_USD", 25);
-  const day = dateKey();
-  const month = monthKey();
+  const rpmLimit = requestsPerMinuteLimit();
+  const now = new Date();
+  const day = dateKey(now);
+  const month = monthKey(now);
+  const minute = minuteKey(now);
   const userMeterPath = `usageMeters/${input.userId}_${day}`;
   const platformMeterPath = `platformUsage/${month}`;
+  const rateLimitPath = `aiRateLimits/${input.userId}`;
   const ledgerPath = `usageLedger/${input.requestId}`;
 
   for (let attempt = 0; attempt < MAX_TRANSACTION_RETRIES; attempt += 1) {
     const transaction = await beginTransaction();
 
     try {
-      const [userMeter, platformMeter] = await Promise.all([
+      const [userMeter, platformMeter, rateMeter] = await Promise.all([
         getDocument(userMeterPath, transaction),
         getDocument(platformMeterPath, transaction),
+        getDocument(rateLimitPath, transaction),
       ]);
 
       const userSpend =
@@ -178,6 +199,15 @@ export async function reserveUsage(input: {
       const platformSpend =
         numberField(platformMeter, "actualCostUsd")
         + numberField(platformMeter, "reservedCostUsd");
+      const sameMinute = stringField(rateMeter, "windowKey") === minute;
+      const minuteRequestCount = sameMinute ? numberField(rateMeter, "requestCount") : 0;
+
+      if (minuteRequestCount >= rpmLimit) {
+        await rollbackTransaction(transaction).catch(() => undefined);
+        throw new RateLimitExceededError(
+          `Too many AI requests. Please retry after the current minute window resets.`,
+        );
+      }
 
       if (userSpend + input.reservedCostUsd > userLimit) {
         await rollbackTransaction(transaction).catch(() => undefined);
@@ -193,7 +223,6 @@ export async function reserveUsage(input: {
         );
       }
 
-      const now = new Date();
       await commitWrites([
         incrementWrite(
           userMeterPath,
@@ -205,6 +234,12 @@ export async function reserveUsage(input: {
           { month, scope: "platform-monthly" },
           { reservedCostUsd: input.reservedCostUsd, requestCount: 1 },
         ),
+        updateWrite(rateLimitPath, {
+          userId: input.userId,
+          windowKey: minute,
+          requestCount: minuteRequestCount + 1,
+          updatedAt: now,
+        }),
         updateWrite(ledgerPath, {
           requestId: input.requestId,
           userId: input.userId,
@@ -228,7 +263,9 @@ export async function reserveUsage(input: {
 
       return { ...input, day, month, userMeterPath, platformMeterPath };
     } catch (error) {
-      if (error instanceof BudgetExceededError) throw error;
+      if (error instanceof BudgetExceededError || error instanceof RateLimitExceededError) {
+        throw error;
+      }
 
       await rollbackTransaction(transaction).catch(() => undefined);
       if (attempt < MAX_TRANSACTION_RETRIES - 1 && isRetryableTransactionError(error)) {

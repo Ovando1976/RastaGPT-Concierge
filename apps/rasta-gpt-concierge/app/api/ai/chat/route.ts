@@ -12,6 +12,7 @@ import {
 import type { ChatRequest } from "../../../lib/ai/types";
 import {
   BudgetExceededError,
+  RateLimitExceededError,
   UnpricedModelError,
   completeUsage,
   estimateReservationUsd,
@@ -128,7 +129,9 @@ export async function POST(request: NextRequest) {
       maxToolCalls: plan.maxToolCalls,
     });
   } catch (error) {
-    if (error instanceof BudgetExceededError) return jsonError(error.message, 429);
+    if (error instanceof BudgetExceededError || error instanceof RateLimitExceededError) {
+      return jsonError(error.message, 429);
+    }
     if (error instanceof UnpricedModelError) {
       console.error("Unpriced AI model blocked", error);
       return jsonError("That AI model is not approved for billable use yet.", 503);
@@ -326,8 +329,6 @@ export async function POST(request: NextRequest) {
 
         if (!finalized) {
           if (assistantText.trim()) {
-            // A disconnected/abbreviated provider stream may omit the usage
-            // object. completeUsage conservatively settles the reservation.
             await finalizeSuccess();
           } else {
             throw new Error("OpenAI stream ended without a completed response.");

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import { useUser } from "./AuthProvider";
 import styles from "./OneLoveAI.module.css";
 
@@ -62,7 +62,7 @@ export default function OneLoveAI() {
     [messages],
   );
 
-  async function submit(event: FormEvent) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const text = input.trim();
     if (!text || !user || sending) return;

@@ -1,0 +1,46 @@
+name: RastaGPT Core CI
+
+on:
+  pull_request:
+    branches:
+      - feat/concierge-mcp-integration
+  push:
+    branches:
+      - feat/rastagpt-core-v1
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rastagpt-core-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck web app
+        run: pnpm --filter rasta-gpt-concierge-web exec tsc --noEmit
+
+      - name: Build web app
+        run: pnpm --filter rasta-gpt-concierge-web build

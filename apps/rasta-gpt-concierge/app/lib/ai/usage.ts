@@ -1,0 +1,400 @@
+import {
+  beginTransaction,
+  commitWrites,
+  getDocument,
+  incrementWrite,
+  rollbackTransaction,
+  updateWrite,
+} from "../server/firebase-rest";
+import type { ModelPlan } from "./types";
+
+type Usage = {
+  input_tokens?: number;
+  output_tokens?: number;
+  total_tokens?: number;
+};
+
+type Reservation = {
+  requestId: string;
+  userId: string;
+  conversationId: string;
+  mode: string;
+  model: string;
+  reservedCostUsd: number;
+  maxToolCalls: number;
+  day: string;
+  month: string;
+  userMeterPath: string;
+  platformMeterPath: string;
+};
+
+const MODEL_PRICING: Record<string, { input: number; output: number }> = {
+  "gpt-5.6-luna": { input: 0.20, output: 1.20 },
+  "gpt-5.6-terra": { input: 2.00, output: 12.00 },
+  "gpt-5.6-sol": { input: 4.00, output: 20.00 },
+  "gpt-5.6": { input: 4.00, output: 20.00 },
+};
+
+const WEB_SEARCH_CALL_USD = 0.01;
+const TOKENIZATION_OVERHEAD_RESERVE = 2_048;
+const MAX_TRANSACTION_RETRIES = 4;
+
+export class BudgetExceededError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BudgetExceededError";
+  }
+}
+
+export class RateLimitExceededError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RateLimitExceededError";
+  }
+}
+
+export class UnpricedModelError extends Error {
+  constructor(model: string) {
+    super(`AI model ${model} has no approved price entry. Refusing to send a billable request.`);
+    this.name = "UnpricedModelError";
+  }
+}
+
+function explicitLimit(name: string, developmentFallback: number): number {
+  const raw = process.env[name];
+  if (!raw?.trim()) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(`Refusing AI spend: ${name} must be explicitly configured in production.`);
+    }
+    return developmentFallback;
+  }
+
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`${name} must be a positive dollar amount.`);
+  }
+  return value;
+}
+
+function requestsPerMinuteLimit(): number {
+  const raw = process.env.RASTAGPT_USER_REQUESTS_PER_MINUTE;
+  if (!raw?.trim()) return 8;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 1 || value > 120) {
+    throw new Error("RASTAGPT_USER_REQUESTS_PER_MINUTE must be an integer from 1 to 120.");
+  }
+  return value;
+}
+
+function dateKey(date = new Date()): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function monthKey(date = new Date()): string {
+  return date.toISOString().slice(0, 7);
+}
+
+function minuteKey(date = new Date()): string {
+  return date.toISOString().slice(0, 16);
+}
+
+function numberField(document: Record<string, unknown> | null, key: string): number {
+  const value = document?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function stringField(document: Record<string, unknown> | null, key: string): string {
+  const value = document?.[key];
+  return typeof value === "string" ? value : "";
+}
+
+function priceFor(model: string): { input: number; output: number } {
+  const price = MODEL_PRICING[model];
+  if (!price) throw new UnpricedModelError(model);
+  return price;
+}
+
+function roundUsd(value: number): number {
+  return Math.round(value * 1_000_000) / 1_000_000;
+}
+
+function isRetryableTransactionError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  return error.message.includes("(409)")
+    || error.message.includes("ABORTED")
+    || error.message.includes("FAILED_PRECONDITION");
+}
+
+function retryDelay(attempt: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 25 * 2 ** attempt));
+}
+
+export function estimateReservationUsd(
+  plan: ModelPlan,
+  inputUtf8Bytes: number,
+): number {
+  const price = priceFor(plan.model);
+  const conservativeInputTokens = Math.max(
+    1,
+    Math.ceil(inputUtf8Bytes) + TOKENIZATION_OVERHEAD_RESERVE,
+  );
+
+  const tokenCost =
+    (conservativeInputTokens / 1_000_000) * price.input
+    + (plan.maxOutputTokens / 1_000_000) * price.output;
+  const builtInToolCost = plan.maxToolCalls * WEB_SEARCH_CALL_USD;
+
+  return roundUsd(Math.max(0.002, (tokenCost + builtInToolCost) * 1.1));
+}
+
+export function estimateActualCostUsd(
+  model: string,
+  usage: Usage,
+  webSearchCalls = 0,
+): number {
+  const price = priceFor(model);
+  return roundUsd(
+    ((usage.input_tokens ?? 0) / 1_000_000) * price.input
+    + ((usage.output_tokens ?? 0) / 1_000_000) * price.output
+    + webSearchCalls * WEB_SEARCH_CALL_USD,
+  );
+}
+
+export async function reserveUsage(input: {
+  requestId: string;
+  userId: string;
+  conversationId: string;
+  mode: string;
+  model: string;
+  reservedCostUsd: number;
+  maxToolCalls: number;
+}): Promise<Reservation> {
+  priceFor(input.model);
+
+  const userLimit = explicitLimit("RASTAGPT_USER_DAILY_COST_USD", 0.50);
+  const platformLimit = explicitLimit("RASTAGPT_PLATFORM_MONTHLY_COST_USD", 25);
+  const rpmLimit = requestsPerMinuteLimit();
+  const now = new Date();
+  const day = dateKey(now);
+  const month = monthKey(now);
+  const minute = minuteKey(now);
+  const userMeterPath = `usageMeters/${input.userId}_${day}`;
+  const platformMeterPath = `platformUsage/${month}`;
+  const rateLimitPath = `aiRateLimits/${input.userId}`;
+  const ledgerPath = `usageLedger/${input.requestId}`;
+
+  for (let attempt = 0; attempt < MAX_TRANSACTION_RETRIES; attempt += 1) {
+    const transaction = await beginTransaction();
+
+    try {
+      const [userMeter, platformMeter, rateMeter] = await Promise.all([
+        getDocument(userMeterPath, transaction),
+        getDocument(platformMeterPath, transaction),
+        getDocument(rateLimitPath, transaction),
+      ]);
+
+      const userSpend =
+        numberField(userMeter, "actualCostUsd")
+        + numberField(userMeter, "reservedCostUsd");
+      const platformSpend =
+        numberField(platformMeter, "actualCostUsd")
+        + numberField(platformMeter, "reservedCostUsd");
+      const sameMinute = stringField(rateMeter, "windowKey") === minute;
+      const minuteRequestCount = sameMinute ? numberField(rateMeter, "requestCount") : 0;
+
+      if (minuteRequestCount >= rpmLimit) {
+        await rollbackTransaction(transaction).catch(() => undefined);
+        throw new RateLimitExceededError(
+          `Too many AI requests. Please retry after the current minute window resets.`,
+        );
+      }
+
+      if (userSpend + input.reservedCostUsd > userLimit) {
+        await rollbackTransaction(transaction).catch(() => undefined);
+        throw new BudgetExceededError(
+          "Your daily AI allowance has been reached. No model request was sent.",
+        );
+      }
+
+      if (platformSpend + input.reservedCostUsd > platformLimit) {
+        await rollbackTransaction(transaction).catch(() => undefined);
+        throw new BudgetExceededError(
+          "RastaGPT's platform AI budget has been reached. No model request was sent.",
+        );
+      }
+
+      await commitWrites([
+        incrementWrite(
+          userMeterPath,
+          { userId: input.userId, day, scope: "user-daily" },
+          { reservedCostUsd: input.reservedCostUsd, requestCount: 1 },
+        ),
+        incrementWrite(
+          platformMeterPath,
+          { month, scope: "platform-monthly" },
+          { reservedCostUsd: input.reservedCostUsd, requestCount: 1 },
+        ),
+        updateWrite(rateLimitPath, {
+          userId: input.userId,
+          windowKey: minute,
+          requestCount: minuteRequestCount + 1,
+          updatedAt: now,
+        }),
+        updateWrite(ledgerPath, {
+          requestId: input.requestId,
+          userId: input.userId,
+          conversationId: input.conversationId,
+          mode: input.mode,
+          provider: "openai",
+          model: input.model,
+          status: "reserved",
+          reservedCostUsd: input.reservedCostUsd,
+          maxToolCalls: input.maxToolCalls,
+          webSearchCalls: 0,
+          estimatedCostUsd: 0,
+          usageEstimated: false,
+          inputTokens: 0,
+          outputTokens: 0,
+          totalTokens: 0,
+          createdAt: now,
+          updatedAt: now,
+        }),
+      ], transaction);
+
+      return { ...input, day, month, userMeterPath, platformMeterPath };
+    } catch (error) {
+      if (error instanceof BudgetExceededError || error instanceof RateLimitExceededError) {
+        throw error;
+      }
+
+      await rollbackTransaction(transaction).catch(() => undefined);
+      if (attempt < MAX_TRANSACTION_RETRIES - 1 && isRetryableTransactionError(error)) {
+        await retryDelay(attempt);
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error("Unable to reserve AI usage after repeated transaction conflicts.");
+}
+
+export async function completeUsage(
+  reservation: Reservation,
+  usage: Usage | undefined,
+  webSearchCalls = 0,
+): Promise<number> {
+  const boundedWebSearchCalls = Math.min(
+    reservation.maxToolCalls,
+    Math.max(0, Math.floor(webSearchCalls)),
+  );
+  const usageEstimated = !usage;
+  const actualCostUsd = usage
+    ? estimateActualCostUsd(reservation.model, usage, boundedWebSearchCalls)
+    : reservation.reservedCostUsd;
+  const ledgerPath = `usageLedger/${reservation.requestId}`;
+
+  for (let attempt = 0; attempt < MAX_TRANSACTION_RETRIES; attempt += 1) {
+    const transaction = await beginTransaction();
+
+    try {
+      const ledger = await getDocument(ledgerPath, transaction);
+      const status = stringField(ledger, "status");
+
+      if (status && status !== "reserved") {
+        await rollbackTransaction(transaction).catch(() => undefined);
+        return numberField(ledger, "estimatedCostUsd");
+      }
+
+      const now = new Date();
+      await commitWrites([
+        incrementWrite(
+          reservation.userMeterPath,
+          { userId: reservation.userId, day: reservation.day, scope: "user-daily" },
+          {
+            reservedCostUsd: -reservation.reservedCostUsd,
+            actualCostUsd,
+          },
+        ),
+        incrementWrite(
+          reservation.platformMeterPath,
+          { month: reservation.month, scope: "platform-monthly" },
+          {
+            reservedCostUsd: -reservation.reservedCostUsd,
+            actualCostUsd,
+          },
+        ),
+        updateWrite(ledgerPath, {
+          status: "success",
+          estimatedCostUsd: actualCostUsd,
+          webSearchCalls: boundedWebSearchCalls,
+          usageEstimated,
+          inputTokens: usage?.input_tokens ?? 0,
+          outputTokens: usage?.output_tokens ?? 0,
+          totalTokens: usage?.total_tokens ?? 0,
+          updatedAt: now,
+        }),
+      ], transaction);
+
+      return actualCostUsd;
+    } catch (error) {
+      await rollbackTransaction(transaction).catch(() => undefined);
+      if (attempt < MAX_TRANSACTION_RETRIES - 1 && isRetryableTransactionError(error)) {
+        await retryDelay(attempt);
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error("Unable to settle AI usage after repeated transaction conflicts.");
+}
+
+export async function releaseUsage(
+  reservation: Reservation,
+  reason: string,
+): Promise<void> {
+  const ledgerPath = `usageLedger/${reservation.requestId}`;
+
+  for (let attempt = 0; attempt < MAX_TRANSACTION_RETRIES; attempt += 1) {
+    const transaction = await beginTransaction();
+
+    try {
+      const ledger = await getDocument(ledgerPath, transaction);
+      const status = stringField(ledger, "status");
+
+      if (status && status !== "reserved") {
+        await rollbackTransaction(transaction).catch(() => undefined);
+        return;
+      }
+
+      const now = new Date();
+      await commitWrites([
+        incrementWrite(
+          reservation.userMeterPath,
+          { userId: reservation.userId, day: reservation.day, scope: "user-daily" },
+          { reservedCostUsd: -reservation.reservedCostUsd },
+        ),
+        incrementWrite(
+          reservation.platformMeterPath,
+          { month: reservation.month, scope: "platform-monthly" },
+          { reservedCostUsd: -reservation.reservedCostUsd },
+        ),
+        updateWrite(ledgerPath, {
+          status: "error",
+          error: reason.slice(0, 500),
+          updatedAt: now,
+        }),
+      ], transaction);
+
+      return;
+    } catch (error) {
+      await rollbackTransaction(transaction).catch(() => undefined);
+      if (attempt < MAX_TRANSACTION_RETRIES - 1 && isRetryableTransactionError(error)) {
+        await retryDelay(attempt);
+        continue;
+      }
+      throw error;
+    }
+  }
+}

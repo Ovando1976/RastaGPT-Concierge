@@ -35,6 +35,16 @@ function stringField(record: Record<string, unknown>, key: string): string | und
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
+function safeSourceUrl(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function retrieveRootsKnowledge(message: string): Promise<RootsRetrieval> {
   const keyword = queryKeyword(message);
   if (!keyword) return { context: "", citations: [] };
@@ -71,7 +81,7 @@ export async function retrieveRootsKnowledge(message: string): Promise<RootsRetr
       citations.push({
         id,
         title: sourceTitle,
-        url: stringField(row, "sourceUrl") || stringField(row, "url"),
+        url: safeSourceUrl(stringField(row, "sourceUrl") || stringField(row, "url")),
         classification: stringField(row, "classification"),
         verification: stringField(row, "verification"),
       });

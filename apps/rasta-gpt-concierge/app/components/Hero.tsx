@@ -5,15 +5,15 @@ export default function Hero() {
     <section className="hero">
       <div className="hero-bg" />
       <div className="hero-inner">
-        <div className="hero-badge">🌴 RastaGPT Concierge</div>
-        <h1 className="hero-title">USVI at your fingertips</h1>
+        <div className="hero-badge">One Love AI · RastaGPT</div>
+        <h1 className="hero-title">Global intelligence. Caribbean consciousness.</h1>
         <p className="hero-sub">
-          Book tastings, check beach conditions, explore events — all inside a
-          gorgeous ChatGPT-native UI.
+          Ask, reason, learn from the Roots, create original work, and build practical ideas
+          with an AI platform designed to respect Caribbean culture rather than imitate it.
         </p>
         <div className="hero-actions">
-          <a href="#rates" className="btn">Get a Taxi Quote</a>
-          <a href="#recipes" className="btn btn-outline">Browse Recipes</a>
+          <a href="#one-love-ai" className="btn">Ask One Love AI</a>
+          <a href="#launch-capabilities" className="btn btn-outline">Explore launch modes</a>
         </div>
       </div>
     </section>

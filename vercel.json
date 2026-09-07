@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "buildCommand": "pnpm build",
+  "functions": {
+    "app/api/ai/chat/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}

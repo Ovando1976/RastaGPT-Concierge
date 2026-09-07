@@ -12,6 +12,7 @@ import {
 import type { ChatRequest } from "../../../lib/ai/types";
 import {
   BudgetExceededError,
+  UnpricedModelError,
   completeUsage,
   estimateReservationUsd,
   releaseUsage,
@@ -53,8 +54,16 @@ type OpenAIUsage = {
   total_tokens?: number;
 };
 
-type CompletedEvent = {
+type OpenAIStreamEvent = {
   type?: string;
+  delta?: string;
+  item?: {
+    id?: string;
+    type?: string;
+  };
+  error?: {
+    message?: string;
+  };
   response?: {
     status?: string;
     usage?: OpenAIUsage;
@@ -96,14 +105,19 @@ export async function POST(request: NextRequest) {
     ? await retrieveRootsKnowledge(message)
     : { context: "", citations: [] };
 
-  const inputCharacters =
-    message.length
-    + history.reduce((sum, item) => sum + item.content.length, 0)
-    + roots.context.length;
-  const reservedCostUsd = estimateReservationUsd(plan, inputCharacters);
+  const instructions = buildInstructions(mode, roots.context);
+  const openAiInput = [
+    ...history,
+    { role: "user" as const, content: message },
+  ];
+  const inputUtf8Bytes = Buffer.byteLength(
+    `${instructions}\n${JSON.stringify(openAiInput)}`,
+    "utf8",
+  );
 
-  let reservation;
+  let reservation: Awaited<ReturnType<typeof reserveUsage>>;
   try {
+    const reservedCostUsd = estimateReservationUsd(plan, inputUtf8Bytes);
     reservation = await reserveUsage({
       requestId,
       userId: user.uid,
@@ -111,9 +125,14 @@ export async function POST(request: NextRequest) {
       mode,
       model: plan.model,
       reservedCostUsd,
+      maxToolCalls: plan.maxToolCalls,
     });
   } catch (error) {
     if (error instanceof BudgetExceededError) return jsonError(error.message, 429);
+    if (error instanceof UnpricedModelError) {
+      console.error("Unpriced AI model blocked", error);
+      return jsonError("That AI model is not approved for billable use yet.", 503);
+    }
     console.error("AI usage reservation failed", error);
     return jsonError("AI usage controls are unavailable, so no model request was sent.", 503);
   }
@@ -138,14 +157,9 @@ export async function POST(request: NextRequest) {
     return jsonError("RastaGPT's AI provider is not configured.", 503);
   }
 
-  const openAiInput = [
-    ...history,
-    { role: "user" as const, content: message },
-  ];
-
   const upstreamBody: Record<string, unknown> = {
     model: plan.model,
-    instructions: buildInstructions(mode, roots.context),
+    instructions,
     input: openAiInput,
     stream: true,
     store: false,
@@ -163,6 +177,7 @@ export async function POST(request: NextRequest) {
   }
   if (plan.allowWeb) {
     upstreamBody.tools = [{ type: "web_search" }];
+    upstreamBody.max_tool_calls = plan.maxToolCalls;
   }
 
   let upstream: Response;
@@ -197,9 +212,12 @@ export async function POST(request: NextRequest) {
     async start(controller) {
       const reader = upstream.body!.getReader();
       const decoder = new TextDecoder();
+      const webSearchCallIds = new Set<string>();
+      let anonymousWebSearchCalls = 0;
       let buffer = "";
       let assistantText = "";
       let finalized = false;
+      let usageSettled = false;
 
       controller.enqueue(sse("meta", {
         requestId,
@@ -209,29 +227,48 @@ export async function POST(request: NextRequest) {
         rootsCitations: roots.citations,
       }));
 
+      const webSearchCallCount = () => Math.min(
+        plan.maxToolCalls,
+        webSearchCallIds.size + anonymousWebSearchCalls,
+      );
+
       const finalizeSuccess = async (usage?: OpenAIUsage) => {
         if (finalized) return;
+
+        const estimatedCostUsd = await completeUsage(
+          reservation,
+          usage,
+          webSearchCallCount(),
+        );
+        usageSettled = true;
+
+        let saved = true;
+        try {
+          await persistAssistantMessage({
+            conversationId,
+            requestId,
+            userId: user.uid,
+            model: plan.model,
+            mode,
+            content: assistantText,
+            citationIds: roots.citations.map((citation) => citation.id),
+            estimatedCostUsd,
+          });
+        } catch (error) {
+          saved = false;
+          console.error("Assistant response persistence failed after usage settlement", error);
+        }
+
         finalized = true;
-
-        const estimatedCostUsd = await completeUsage(reservation, usage);
-        await persistAssistantMessage({
-          conversationId,
-          requestId,
-          userId: user.uid,
-          model: plan.model,
-          mode,
-          content: assistantText,
-          citationIds: roots.citations.map((citation) => citation.id),
-          estimatedCostUsd,
-        });
-
         controller.enqueue(sse("done", {
           requestId,
           conversationId,
           model: plan.model,
           usage: usage ?? null,
           estimatedCostUsd,
+          webSearchCalls: webSearchCallCount(),
           rootsCitations: roots.citations,
+          saved,
         }));
       };
 
@@ -256,14 +293,23 @@ export async function POST(request: NextRequest) {
             const raw = dataLines.join("\n");
             if (!raw || raw === "[DONE]") continue;
 
-            let event: CompletedEvent & { delta?: string; error?: { message?: string } };
+            let event: OpenAIStreamEvent;
             try {
-              event = JSON.parse(raw);
+              event = JSON.parse(raw) as OpenAIStreamEvent;
             } catch {
               continue;
             }
 
-            if (event.type === "response.output_text.delta" && typeof event.delta === "string") {
+            if (
+              event.type === "response.output_item.added"
+              && event.item?.type === "web_search_call"
+            ) {
+              if (event.item.id) webSearchCallIds.add(event.item.id);
+              else anonymousWebSearchCalls += 1;
+            } else if (
+              event.type === "response.output_text.delta"
+              && typeof event.delta === "string"
+            ) {
               assistantText += event.delta;
               controller.enqueue(sse("delta", { text: event.delta }));
             } else if (event.type === "response.completed") {
@@ -280,6 +326,8 @@ export async function POST(request: NextRequest) {
 
         if (!finalized) {
           if (assistantText.trim()) {
+            // A disconnected/abbreviated provider stream may omit the usage
+            // object. completeUsage conservatively settles the reservation.
             await finalizeSuccess();
           } else {
             throw new Error("OpenAI stream ended without a completed response.");
@@ -287,7 +335,7 @@ export async function POST(request: NextRequest) {
         }
       } catch (error) {
         const messageText = error instanceof Error ? error.message : "AI stream failed.";
-        if (!finalized) {
+        if (!usageSettled) {
           await releaseUsage(reservation, messageText).catch(console.error);
         }
         console.error("AI stream error", error);

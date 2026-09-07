@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { buildInstructions } from "../../../lib/ai/prompts";
 import { persistAssistantMessage, persistUserMessage } from "../../../lib/ai/persistence";
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
   const token = bearerToken(request);
   if (!token) return jsonError("Authentication required.", 401);
 
-  let user;
+  let user: Awaited<ReturnType<typeof verifyFirebaseIdToken>>;
   try {
     user = await verifyFirebaseIdToken(token);
   } catch {

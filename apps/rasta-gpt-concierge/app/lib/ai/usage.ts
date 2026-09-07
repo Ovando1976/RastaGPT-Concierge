@@ -21,6 +21,7 @@ type Reservation = {
   mode: string;
   model: string;
   reservedCostUsd: number;
+  maxToolCalls: number;
   userMeterPath: string;
   platformMeterPath: string;
 };
@@ -32,12 +33,21 @@ const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   "gpt-5.6": { input: 4.00, output: 20.00 },
 };
 
+const WEB_SEARCH_CALL_USD = 0.01;
+const TOKENIZATION_OVERHEAD_RESERVE = 2_048;
 const MAX_RESERVATION_RETRIES = 4;
 
 export class BudgetExceededError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "BudgetExceededError";
+  }
+}
+
+export class UnpricedModelError extends Error {
+  constructor(model: string) {
+    super(`AI model ${model} has no approved price entry. Refusing to send a billable request.`);
+    this.name = "UnpricedModelError";
   }
 }
 
@@ -71,7 +81,9 @@ function numberField(document: Record<string, unknown> | null, key: string): num
 }
 
 function priceFor(model: string): { input: number; output: number } {
-  return MODEL_PRICING[model] ?? { input: 4.00, output: 20.00 };
+  const price = MODEL_PRICING[model];
+  if (!price) throw new UnpricedModelError(model);
+  return price;
 }
 
 function roundUsd(value: number): number {
@@ -91,23 +103,38 @@ function retryDelay(attempt: number): Promise<void> {
 
 export function estimateReservationUsd(
   plan: ModelPlan,
-  inputCharacters: number,
+  inputUtf8Bytes: number,
 ): number {
   const price = priceFor(plan.model);
-  const estimatedInputTokens = Math.min(80_000, Math.ceil(inputCharacters / 3.5));
-  const estimated =
-    (estimatedInputTokens / 1_000_000) * price.input
-    + (plan.maxOutputTokens / 1_000_000) * price.output;
 
-  return roundUsd(Math.max(0.002, estimated * 1.2));
+  // BPE tokenization ultimately operates on bytes. Reserving one possible
+  // input token per UTF-8 byte is deliberately conservative, then we add a
+  // fixed allowance for message-role / protocol overhead not represented in
+  // the raw text passed by the caller.
+  const conservativeInputTokens = Math.max(
+    1,
+    Math.ceil(inputUtf8Bytes) + TOKENIZATION_OVERHEAD_RESERVE,
+  );
+
+  const tokenCost =
+    (conservativeInputTokens / 1_000_000) * price.input
+    + (plan.maxOutputTokens / 1_000_000) * price.output;
+  const builtInToolCost = plan.maxToolCalls * WEB_SEARCH_CALL_USD;
+
+  return roundUsd(Math.max(0.002, (tokenCost + builtInToolCost) * 1.1));
 }
 
-export function estimateActualCostUsd(model: string, usage?: Usage): number {
-  if (!usage) return 0;
+export function estimateActualCostUsd(
+  model: string,
+  usage?: Usage,
+  webSearchCalls = 0,
+): number {
+  if (!usage) return roundUsd(webSearchCalls * WEB_SEARCH_CALL_USD);
   const price = priceFor(model);
   return roundUsd(
     ((usage.input_tokens ?? 0) / 1_000_000) * price.input
-    + ((usage.output_tokens ?? 0) / 1_000_000) * price.output,
+    + ((usage.output_tokens ?? 0) / 1_000_000) * price.output
+    + webSearchCalls * WEB_SEARCH_CALL_USD,
   );
 }
 
@@ -118,7 +145,11 @@ export async function reserveUsage(input: {
   mode: string;
   model: string;
   reservedCostUsd: number;
+  maxToolCalls: number;
 }): Promise<Reservation> {
+  // Validate model pricing before opening a transaction or calling OpenAI.
+  priceFor(input.model);
+
   const userLimit = explicitLimit("RASTAGPT_USER_DAILY_COST_USD", 0.50);
   const platformLimit = explicitLimit("RASTAGPT_PLATFORM_MONTHLY_COST_USD", 25);
   const day = dateKey();
@@ -178,6 +209,8 @@ export async function reserveUsage(input: {
           model: input.model,
           status: "reserved",
           reservedCostUsd: input.reservedCostUsd,
+          maxToolCalls: input.maxToolCalls,
+          webSearchCalls: 0,
           estimatedCostUsd: 0,
           inputTokens: 0,
           outputTokens: 0,
@@ -206,8 +239,17 @@ export async function reserveUsage(input: {
 export async function completeUsage(
   reservation: Reservation,
   usage: Usage | undefined,
+  webSearchCalls = 0,
 ): Promise<number> {
-  const actualCostUsd = estimateActualCostUsd(reservation.model, usage);
+  const boundedWebSearchCalls = Math.min(
+    reservation.maxToolCalls,
+    Math.max(0, Math.floor(webSearchCalls)),
+  );
+  const actualCostUsd = estimateActualCostUsd(
+    reservation.model,
+    usage,
+    boundedWebSearchCalls,
+  );
   const now = new Date();
 
   await commitWrites([
@@ -230,6 +272,7 @@ export async function completeUsage(
     updateWrite(`usageLedger/${reservation.requestId}`, {
       status: "success",
       estimatedCostUsd: actualCostUsd,
+      webSearchCalls: boundedWebSearchCalls,
       inputTokens: usage?.input_tokens ?? 0,
       outputTokens: usage?.output_tokens ?? 0,
       totalTokens: usage?.total_tokens ?? 0,

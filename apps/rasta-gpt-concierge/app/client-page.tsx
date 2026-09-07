@@ -8,6 +8,7 @@ import RateQuote from "./components/RateQuote";
 import SectionTitle from "./components/SectionTitle";
 import Hero from "./components/Hero";
 import RecipeSearch from "./components/RecipeSearch";
+import OneLoveAI from "./components/OneLoveAI";
 
 export default function ClientPage() {
   return (
@@ -15,6 +16,7 @@ export default function ClientPage() {
       <Navbar />
       <div className="container">
         <Hero />
+        <OneLoveAI />
 
         <a id="rates" />
         <div className="panel" style={{ marginTop: 12 }}>

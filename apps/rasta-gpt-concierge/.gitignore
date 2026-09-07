@@ -1,5 +1,14 @@
-# Keep node_modules and build artifacts ignored
-.next
+# Dependencies and build output
 node_modules
+.next
 dist
-# Do NOT ignore app/lib - we need firebase.client.ts deployed
+coverage
+
+# Local environment files must never be committed
+.env
+.env.*
+!.env.example
+
+# OS/editor noise
+.DS_Store
+*.log

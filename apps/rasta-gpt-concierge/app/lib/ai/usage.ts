@@ -22,6 +22,8 @@ type Reservation = {
   model: string;
   reservedCostUsd: number;
   maxToolCalls: number;
+  day: string;
+  month: string;
   userMeterPath: string;
   platformMeterPath: string;
 };
@@ -35,7 +37,7 @@ const MODEL_PRICING: Record<string, { input: number; output: number }> = {
 
 const WEB_SEARCH_CALL_USD = 0.01;
 const TOKENIZATION_OVERHEAD_RESERVE = 2_048;
-const MAX_RESERVATION_RETRIES = 4;
+const MAX_TRANSACTION_RETRIES = 4;
 
 export class BudgetExceededError extends Error {
   constructor(message: string) {
@@ -78,6 +80,11 @@ function monthKey(date = new Date()): string {
 function numberField(document: Record<string, unknown> | null, key: string): number {
   const value = document?.[key];
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function stringField(document: Record<string, unknown> | null, key: string): string {
+  const value = document?.[key];
+  return typeof value === "string" ? value : "";
 }
 
 function priceFor(model: string): { input: number; output: number } {
@@ -147,7 +154,6 @@ export async function reserveUsage(input: {
   reservedCostUsd: number;
   maxToolCalls: number;
 }): Promise<Reservation> {
-  // Validate model pricing before opening a transaction or calling OpenAI.
   priceFor(input.model);
 
   const userLimit = explicitLimit("RASTAGPT_USER_DAILY_COST_USD", 0.50);
@@ -158,7 +164,7 @@ export async function reserveUsage(input: {
   const platformMeterPath = `platformUsage/${month}`;
   const ledgerPath = `usageLedger/${input.requestId}`;
 
-  for (let attempt = 0; attempt < MAX_RESERVATION_RETRIES; attempt += 1) {
+  for (let attempt = 0; attempt < MAX_TRANSACTION_RETRIES; attempt += 1) {
     const transaction = await beginTransaction();
 
     try {
@@ -220,12 +226,12 @@ export async function reserveUsage(input: {
         }),
       ], transaction);
 
-      return { ...input, userMeterPath, platformMeterPath };
+      return { ...input, day, month, userMeterPath, platformMeterPath };
     } catch (error) {
       if (error instanceof BudgetExceededError) throw error;
 
       await rollbackTransaction(transaction).catch(() => undefined);
-      if (attempt < MAX_RESERVATION_RETRIES - 1 && isRetryableTransactionError(error)) {
+      if (attempt < MAX_TRANSACTION_RETRIES - 1 && isRetryableTransactionError(error)) {
         await retryDelay(attempt);
         continue;
       }
@@ -250,60 +256,108 @@ export async function completeUsage(
     usage,
     boundedWebSearchCalls,
   );
-  const now = new Date();
+  const ledgerPath = `usageLedger/${reservation.requestId}`;
 
-  await commitWrites([
-    incrementWrite(
-      reservation.userMeterPath,
-      { userId: reservation.userId, day: dateKey(), scope: "user-daily" },
-      {
-        reservedCostUsd: -reservation.reservedCostUsd,
-        actualCostUsd,
-      },
-    ),
-    incrementWrite(
-      reservation.platformMeterPath,
-      { month: monthKey(), scope: "platform-monthly" },
-      {
-        reservedCostUsd: -reservation.reservedCostUsd,
-        actualCostUsd,
-      },
-    ),
-    updateWrite(`usageLedger/${reservation.requestId}`, {
-      status: "success",
-      estimatedCostUsd: actualCostUsd,
-      webSearchCalls: boundedWebSearchCalls,
-      inputTokens: usage?.input_tokens ?? 0,
-      outputTokens: usage?.output_tokens ?? 0,
-      totalTokens: usage?.total_tokens ?? 0,
-      updatedAt: now,
-    }),
-  ]);
+  for (let attempt = 0; attempt < MAX_TRANSACTION_RETRIES; attempt += 1) {
+    const transaction = await beginTransaction();
 
-  return actualCostUsd;
+    try {
+      const ledger = await getDocument(ledgerPath, transaction);
+      const status = stringField(ledger, "status");
+
+      if (status && status !== "reserved") {
+        await rollbackTransaction(transaction).catch(() => undefined);
+        return numberField(ledger, "estimatedCostUsd");
+      }
+
+      const now = new Date();
+      await commitWrites([
+        incrementWrite(
+          reservation.userMeterPath,
+          { userId: reservation.userId, day: reservation.day, scope: "user-daily" },
+          {
+            reservedCostUsd: -reservation.reservedCostUsd,
+            actualCostUsd,
+          },
+        ),
+        incrementWrite(
+          reservation.platformMeterPath,
+          { month: reservation.month, scope: "platform-monthly" },
+          {
+            reservedCostUsd: -reservation.reservedCostUsd,
+            actualCostUsd,
+          },
+        ),
+        updateWrite(ledgerPath, {
+          status: "success",
+          estimatedCostUsd: actualCostUsd,
+          webSearchCalls: boundedWebSearchCalls,
+          inputTokens: usage?.input_tokens ?? 0,
+          outputTokens: usage?.output_tokens ?? 0,
+          totalTokens: usage?.total_tokens ?? 0,
+          updatedAt: now,
+        }),
+      ], transaction);
+
+      return actualCostUsd;
+    } catch (error) {
+      await rollbackTransaction(transaction).catch(() => undefined);
+      if (attempt < MAX_TRANSACTION_RETRIES - 1 && isRetryableTransactionError(error)) {
+        await retryDelay(attempt);
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error("Unable to settle AI usage after repeated transaction conflicts.");
 }
 
 export async function releaseUsage(
   reservation: Reservation,
   reason: string,
 ): Promise<void> {
-  const now = new Date();
+  const ledgerPath = `usageLedger/${reservation.requestId}`;
 
-  await commitWrites([
-    incrementWrite(
-      reservation.userMeterPath,
-      { userId: reservation.userId, day: dateKey(), scope: "user-daily" },
-      { reservedCostUsd: -reservation.reservedCostUsd },
-    ),
-    incrementWrite(
-      reservation.platformMeterPath,
-      { month: monthKey(), scope: "platform-monthly" },
-      { reservedCostUsd: -reservation.reservedCostUsd },
-    ),
-    updateWrite(`usageLedger/${reservation.requestId}`, {
-      status: "error",
-      error: reason.slice(0, 500),
-      updatedAt: now,
-    }),
-  ]);
+  for (let attempt = 0; attempt < MAX_TRANSACTION_RETRIES; attempt += 1) {
+    const transaction = await beginTransaction();
+
+    try {
+      const ledger = await getDocument(ledgerPath, transaction);
+      const status = stringField(ledger, "status");
+
+      if (status && status !== "reserved") {
+        await rollbackTransaction(transaction).catch(() => undefined);
+        return;
+      }
+
+      const now = new Date();
+      await commitWrites([
+        incrementWrite(
+          reservation.userMeterPath,
+          { userId: reservation.userId, day: reservation.day, scope: "user-daily" },
+          { reservedCostUsd: -reservation.reservedCostUsd },
+        ),
+        incrementWrite(
+          reservation.platformMeterPath,
+          { month: reservation.month, scope: "platform-monthly" },
+          { reservedCostUsd: -reservation.reservedCostUsd },
+        ),
+        updateWrite(ledgerPath, {
+          status: "error",
+          error: reason.slice(0, 500),
+          updatedAt: now,
+        }),
+      ], transaction);
+
+      return;
+    } catch (error) {
+      await rollbackTransaction(transaction).catch(() => undefined);
+      if (attempt < MAX_TRANSACTION_RETRIES - 1 && isRetryableTransactionError(error)) {
+        await retryDelay(attempt);
+        continue;
+      }
+      throw error;
+    }
+  }
 }

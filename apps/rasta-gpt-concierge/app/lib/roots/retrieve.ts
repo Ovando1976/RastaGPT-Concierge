@@ -1,13 +1,11 @@
-import "server-only";
-
 import { runStructuredQuery } from "../server/firebase-rest";
 
 export type RootsCitation = {
   id: string;
   title: string;
-  url?: string;
-  classification?: string;
-  verification?: string;
+  url?: string | undefined;
+  classification?: string | undefined;
+  verification?: string | undefined;
 };
 
 export type RootsRetrieval = {

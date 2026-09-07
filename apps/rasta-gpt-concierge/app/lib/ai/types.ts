@@ -20,4 +20,5 @@ export type ModelPlan = {
   maxOutputTokens: number;
   reasoningEffort?: "low" | "medium" | "high";
   allowWeb: boolean;
+  maxToolCalls: number;
 };

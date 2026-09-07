@@ -1,20 +1,19 @@
-import "./globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-
-const inter = Inter({ subsets: ["latin"], display: "swap" });
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "RastaGPT Concierge",
-  description: "USVI food, beaches, and events—right inside ChatGPT/Claude.",
+  title: {
+    default: "RastaGPT · One Love AI",
+    template: "%s · RastaGPT",
+  },
+  description: "Global intelligence with Caribbean consciousness. Ask, learn from the Roots, create original work, and build practical ideas with RastaGPT.",
+  applicationName: "RastaGPT",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        {children} {/* ❌ no AppProvider/ClientProviders here */}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

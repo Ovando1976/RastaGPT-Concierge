@@ -5,6 +5,7 @@ import type { AIMode, ModelPlan } from "./types";
 const MAX_MESSAGE_CHARS = 12_000;
 const MAX_HISTORY_ITEMS = 10;
 const MAX_HISTORY_CHARS = 30_000;
+const MAX_BUILT_IN_TOOL_CALLS = 2;
 
 export function isAIMode(value: unknown): value is AIMode {
   return value === "general"
@@ -54,6 +55,7 @@ export function sanitizeHistory(
 export function routeModel(mode: AIMode, requestedWeb: boolean): ModelPlan {
   const allowWebGlobally = process.env.RASTAGPT_ALLOW_WEB_SEARCH === "true";
   const allowWeb = requestedWeb && allowWebGlobally;
+  const maxToolCalls = allowWeb ? MAX_BUILT_IN_TOOL_CALLS : 0;
 
   switch (mode) {
     case "reasoning":
@@ -62,6 +64,7 @@ export function routeModel(mode: AIMode, requestedWeb: boolean): ModelPlan {
         maxOutputTokens: 3_072,
         reasoningEffort: "medium",
         allowWeb,
+        maxToolCalls,
       };
     case "roots":
     case "creator":
@@ -70,12 +73,14 @@ export function routeModel(mode: AIMode, requestedWeb: boolean): ModelPlan {
         model: process.env.OPENAI_BALANCED_MODEL || "gpt-5.6-terra",
         maxOutputTokens: 2_400,
         allowWeb,
+        maxToolCalls,
       };
     default:
       return {
         model: process.env.OPENAI_FAST_MODEL || "gpt-5.6-luna",
         maxOutputTokens: 1_800,
         allowWeb,
+        maxToolCalls,
       };
   }
 }

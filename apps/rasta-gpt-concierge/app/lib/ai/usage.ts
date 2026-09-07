@@ -133,10 +133,9 @@ export function estimateReservationUsd(
 
 export function estimateActualCostUsd(
   model: string,
-  usage?: Usage,
+  usage: Usage,
   webSearchCalls = 0,
 ): number {
-  if (!usage) return roundUsd(webSearchCalls * WEB_SEARCH_CALL_USD);
   const price = priceFor(model);
   return roundUsd(
     ((usage.input_tokens ?? 0) / 1_000_000) * price.input
@@ -218,6 +217,7 @@ export async function reserveUsage(input: {
           maxToolCalls: input.maxToolCalls,
           webSearchCalls: 0,
           estimatedCostUsd: 0,
+          usageEstimated: false,
           inputTokens: 0,
           outputTokens: 0,
           totalTokens: 0,
@@ -251,11 +251,10 @@ export async function completeUsage(
     reservation.maxToolCalls,
     Math.max(0, Math.floor(webSearchCalls)),
   );
-  const actualCostUsd = estimateActualCostUsd(
-    reservation.model,
-    usage,
-    boundedWebSearchCalls,
-  );
+  const usageEstimated = !usage;
+  const actualCostUsd = usage
+    ? estimateActualCostUsd(reservation.model, usage, boundedWebSearchCalls)
+    : reservation.reservedCostUsd;
   const ledgerPath = `usageLedger/${reservation.requestId}`;
 
   for (let attempt = 0; attempt < MAX_TRANSACTION_RETRIES; attempt += 1) {
@@ -292,6 +291,7 @@ export async function completeUsage(
           status: "success",
           estimatedCostUsd: actualCostUsd,
           webSearchCalls: boundedWebSearchCalls,
+          usageEstimated,
           inputTokens: usage?.input_tokens ?? 0,
           outputTokens: usage?.output_tokens ?? 0,
           totalTokens: usage?.total_tokens ?? 0,

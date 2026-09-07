@@ -1,5 +1,3 @@
-import "server-only";
-
 import { createSign } from "node:crypto";
 
 type FirestoreValue =
@@ -117,8 +115,8 @@ async function firestoreFetch(path: string, init: RequestInit = {}): Promise<Res
 
 export type VerifiedFirebaseUser = {
   uid: string;
-  email?: string;
-  displayName?: string;
+  email?: string | undefined;
+  displayName?: string | undefined;
 };
 
 export async function verifyFirebaseIdToken(idToken: string): Promise<VerifiedFirebaseUser> {
@@ -201,9 +199,13 @@ export function decodeDocument(document: FirestoreDocument): Record<string, unkn
   return { id: document.name.split("/").pop(), ...decoded };
 }
 
-export async function getDocument(path: string): Promise<Record<string, unknown> | null> {
+export async function getDocument(
+  path: string,
+  transaction?: string,
+): Promise<Record<string, unknown> | null> {
+  const suffix = transaction ? `?transaction=${encodeURIComponent(transaction)}` : "";
   const response = await firestoreFetch(
-    `${databaseName()}/documents/${encodePath(path)}`,
+    `${databaseName()}/documents/${encodePath(path)}${suffix}`,
   );
 
   if (response.status === 404) return null;
@@ -277,14 +279,49 @@ export function updateWrite(path: string, data: Record<string, unknown>): Firest
   };
 }
 
-export async function commitWrites(writes: FirestoreWrite[]): Promise<void> {
+export async function beginTransaction(): Promise<string> {
+  const response = await firestoreFetch(
+    `${databaseName()}/documents:beginTransaction`,
+    {
+      method: "POST",
+      body: JSON.stringify({ options: { readWrite: {} } }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Firestore transaction start failed (${response.status}): ${(await response.text()).slice(0, 300)}`);
+  }
+
+  const data = await response.json() as { transaction?: string };
+  if (!data.transaction) throw new Error("Firestore transaction start returned no transaction identifier.");
+  return data.transaction;
+}
+
+export async function rollbackTransaction(transaction: string): Promise<void> {
+  const response = await firestoreFetch(
+    `${databaseName()}/documents:rollback`,
+    {
+      method: "POST",
+      body: JSON.stringify({ transaction }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Firestore transaction rollback failed (${response.status}): ${(await response.text()).slice(0, 300)}`);
+  }
+}
+
+export async function commitWrites(
+  writes: FirestoreWrite[],
+  transaction?: string,
+): Promise<void> {
   if (!writes.length) return;
 
   const response = await firestoreFetch(
     `${databaseName()}/documents:commit`,
     {
       method: "POST",
-      body: JSON.stringify({ writes }),
+      body: JSON.stringify(transaction ? { writes, transaction } : { writes }),
     },
   );
 
